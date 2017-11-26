@@ -22,6 +22,9 @@ public class OLight : MonoBehaviour {
 	List<Intersection> intersects = new List<Intersection>(); //Interceptions between rays and segments
 	List<float> vertAngles = new List<float>(); //Angles of the vertices
 
+	//Segments of the last calculates light, used to compute if a point is in the light
+	List<Segment2D> lightSegments = new List<Segment2D>();
+
 	//Mesh that represents the area affected by the light
 	//NOTE: present as a global variable for caching purposes
 	Mesh lightMesh;
@@ -31,11 +34,13 @@ public class OLight : MonoBehaviour {
 
 	//
 	bool computed = false;
+	bool debugFlag = false;
 
 	//Exposing parameters to the inspector
 	public Vector2 Position;
 	public float ConeAngle = 6.30F;
 	public float Direction = 3.14F;
+	public float WorldMaximumSize = 10F;
 	public bool Mouse = false;
 	public bool Static = false;
 	//public Color Color = new Color(1.0F, 1.0F, 1.0F);
@@ -49,6 +54,15 @@ public class OLight : MonoBehaviour {
 		CollectVertices ();
 	}
 
+	/// <summary>
+	/// Refreshs the vertices.
+	/// Call when the shadown casting objects in the map move or change.
+	/// </summary>
+	public void RefreshVertices(){
+		lightMesh = new Mesh();
+		meshFilter = GetComponent<MeshFilter>();
+		CollectVertices ();
+	}
 
 	void Update () 
 	{
@@ -178,8 +192,24 @@ public class OLight : MonoBehaviour {
 			}
 		}
 
+		//Build the segments of the logical polygon used to detect if an object is lit
+		lightSegments.Clear ();
 
-		// Triangles
+		for (int i=0;i < verts.Count;i++)
+		{
+			// Segment start
+			Vector3 wPos1 = transform.TransformPoint(verts[i]);
+
+			// Segment end
+			Vector3 wPos2 = transform.TransformPoint(verts[(i+1) % verts.Count]);
+
+			Segment2D seg = new Segment2D();
+			seg.a = new Vector2(wPos1.x,wPos1.y);
+			seg.b = new Vector2(wPos2.x, wPos2.y);
+			lightSegments.Add(seg);
+		}
+
+		// Triangles of the mesh
 		for(var i=0;i<verts.Count+1;i++)
 		{
 			tris.Add((i+1) % verts.Count);
@@ -195,6 +225,16 @@ public class OLight : MonoBehaviour {
 
 		meshFilter.mesh = lightMesh;
 		computed = true;
+
+		//FIXME: DEBUG
+		Vector2 mpos = Camera.main.ScreenToWorldPoint (new Vector2 (Input.mousePosition.x, Input.mousePosition.y));
+
+		if (PointIsInLight (mpos) != debugFlag) {
+			debugFlag = !debugFlag;
+			Debug.Log(debugFlag);
+		}
+
+
 
 	}
 
@@ -306,7 +346,55 @@ public class OLight : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Check if a point is in the light
+	/// </summary>
+	/// <returns><c>true</c>, if p is in light, <c>false</c> otherwise.</returns>
+	/// <param name="p">Point (Vector2)</param>
+	public bool PointIsInLight(Vector2 p) {
+		return PointIsInLight (new Vector3 (p.x, p.y, 0));
+	}
 
+	/// <summary>
+	/// Check if a point is in the light
+	/// </summary>
+	/// <returns><c>true</c>, if p is in light, <c>false</c> otherwise.</returns>
+	/// <param name="p">Point (Vector3)</param>
+	public bool PointIsInLight(Vector3 p) {
+		if (lightSegments.Count == 0)
+			return false;
+
+		return ContainsPoint (lightSegments, p);
+	}
+
+	/// <summary>
+	/// Check if a polygon contains the point.
+	/// Only xy plane is considered.
+	/// </summary>
+	/// <returns><c>true</c>, if point was contained, <c>false</c> otherwise.</returns>
+	/// <param name="polySegments">Segments of the polygon.</param>
+	/// <param name="p">Point</param>
+	bool ContainsPoint (List<Segment2D> polySegments, Vector3 p)  { 
+		//Cast a ray from thee light to the point to test
+		Ray2D ray = new Ray2D(transform.position, p);
+		//Get all the intersections between the segments if the light poligon and the casted ray
+		var allIntersct = polySegments.Select (s => getIntersection (ray, s));
+		// Find the number of intersections until the point (param < 1.0F)
+		var intersectCount = allIntersct.Where (x => x.v != null && x.param <= 1.0F).Count();
+
+		/*   DEBUG
+		allIntersct.ToList().Where (x => x.v != null && x.param < 1.0F).ToList().ForEach(i =>
+			//Debug.DrawRay(i.v.Value, new Vector3(0.1F,0.1F,0.1F), (intersectCount % 2 == 0) ? Color.green : Color.red, 10000.0F, false)
+			Debug.DrawLine (new Vector3(ray.a.x, ray.a.y, -20), new Vector3(ray.b.x, ray.b.y, -20), (intersectCount % 2 == 0) ? Color.green : Color.red, duration : 10000.0F ,depthTest : false)
+		);
+		Debug.Log (intersectCount);
+		*/
+
+		if (intersectCount % 2 == 0)
+			return true;
+		else
+			return false;
+	}
 
 
 	// Find intersection of ray and segment
@@ -423,6 +511,11 @@ public class OLight : MonoBehaviour {
 			this.b = _b;
 		}
 
+		public Ray2D(Vector3 _a, Vector3 _b)
+		{
+			this.a = new Vector2(_a.x, _a.y);
+			this.b = new Vector2(_b.x, _b.y);
+		}
 	}
 
 	//Segment from a to b

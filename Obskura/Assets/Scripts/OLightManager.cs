@@ -6,6 +6,7 @@ using UnityEngine;
 public class OLightManager : MonoBehaviour {
 
 	public Camera LightCamera;
+	public Camera MainCamera;
 	public float Intensity = 10.0F;
 	public Color Overlay = new Color (0.0F, 0.0F, 0.0F);
 	private Material material;
@@ -16,6 +17,16 @@ public class OLightManager : MonoBehaviour {
 	{
 		material = new Material( Shader.Find("Custom/SLightTexture") );
 		LightCamera.targetTexture = new RenderTexture(LightCamera.pixelWidth, LightCamera.pixelHeight, 24);
+
+		LightCamera.orthographicSize = MainCamera.orthographicSize;
+		LightCamera.aspect = MainCamera.aspect;
+	}
+
+	void Update() {
+		if (LightCamera.aspect != MainCamera.aspect || LightCamera.orthographicSize != MainCamera.orthographicSize) {
+			LightCamera.orthographicSize = MainCamera.orthographicSize;
+			LightCamera.aspect = MainCamera.aspect;
+		}
 	}
 
 	// Postprocess the image
