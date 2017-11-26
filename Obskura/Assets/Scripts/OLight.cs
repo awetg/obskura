@@ -40,7 +40,6 @@ public class OLight : MonoBehaviour {
 	public Vector2 Position;
 	public float ConeAngle = 6.30F;
 	public float Direction = 3.14F;
-	public float WorldMaximumSize = 10F;
 	public bool Mouse = false;
 	public bool Static = false;
 	//public Color Color = new Color(1.0F, 1.0F, 1.0F);
