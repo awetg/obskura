@@ -20,6 +20,8 @@ public class OLightManager : MonoBehaviour {
 
 		LightCamera.orthographicSize = MainCamera.orthographicSize;
 		LightCamera.aspect = MainCamera.aspect;
+
+		RefreshVertices ();
 	}
 
 	void Update() {
@@ -37,5 +39,13 @@ public class OLightManager : MonoBehaviour {
 		material.SetColor("_Overlay", Overlay);
 		material.SetTexture ("_LightTex", lightMap);
 		Graphics.Blit (source, destination, material);
+	}
+
+	/// <summary>
+	/// Refreshs the vertices.
+	/// Call when the shadown casting objects in the map move or change.
+	/// </summary>
+	public void RefreshVertices(){
+		Geometry.CollectVertices ();
 	}
 }

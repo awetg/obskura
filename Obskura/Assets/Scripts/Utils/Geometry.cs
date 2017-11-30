@@ -3,16 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class Geometry : MonoBehaviour {
+public static class Geometry {
 
-	List<Segment2D> segments = new List<Segment2D>(); //Segments of the walls or light blocking objects
-	List<Vector3> vertices = new List<Vector3>(); //Vertices of the walls or light blocking objects
+	static List<Segment2D> segments = new List<Segment2D>(); //Segments of the walls or light blocking objects
+	static List<Vector3> vertices = new List<Vector3>(); //Vertices of the walls or light blocking objects
 
-	public void CollectVertices() {
+	public static void CollectVertices() {
 		CollectVertices (new string[1] {"Wall"});
 	}
+		
+	public static List<Vector3> GetVertices() {
+		return vertices;
+	}
 
-	public void CollectVertices(string[] tags)
+	public static List<Segment2D> GetSegments() {
+		return segments;
+	}
+
+	public static void CollectVertices(string[] tags)
 	{
 		//Clear the vertices list, since it might not be the first time
 		//the vertices are collected (immagine moving walls).
@@ -25,7 +33,7 @@ public class Geometry : MonoBehaviour {
 		// Get all the vertices
 		foreach (GameObject go in gos)
 		{
-			Mesh goMesh = go.GetComponent<MeshFilter>().mesh;
+			Mesh goMesh = go.GetComponent<MeshFilter>().sharedMesh;
 			int[] tris = goMesh.triangles;
 
 			var uniqueTris = tris.Distinct ().ToArray();
@@ -118,20 +126,61 @@ public class Geometry : MonoBehaviour {
 		}
 	}
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
+
+	// Find intersection of ray and segment
+	// http://ncase.me/sight-and-light/
+	public static Intersection GetIntersection(Ray2D ray, Segment2D segment)
+	{
+		Intersection res = new Intersection();
+
+		// Ray in parametric form: Point + Delta*T1
+		float r_px = ray.a.x;
+		float r_py = ray.a.y;
+		float r_dx = ray.b.x-ray.a.x;
+		float r_dy = ray.b.y-ray.a.y;
+
+		// Segment in parametric form: Point + Delta*T2
+		float s_px = segment.a.x;
+		float s_py = segment.a.y;
+		float s_dx = segment.b.x-segment.a.x;
+		float s_dy = segment.b.y-segment.a.y;
+
+		// Get the magnitudes
+		var r_mag = Mathf.Sqrt(r_dx*r_dx+r_dy*r_dy);
+		var s_mag = Mathf.Sqrt(s_dx*s_dx+s_dy*s_dy);
+
+		// Check if they are parallel
+		if(r_dx/r_mag==s_dx/s_mag && r_dy/r_mag==s_dy/s_mag) // Unit vectors are the same
+		{
+			return res; 
+		}
+
+		// SOLVE FOR T1 & T2
+		// r_px+r_dx*T1 = s_px+s_dx*T2 && r_py+r_dy*T1 = s_py+s_dy*T2
+		// ==> T1 = (s_px+s_dx*T2-r_px)/r_dx = (s_py+s_dy*T2-r_py)/r_dy
+		// ==> s_px*r_dy + s_dx*T2*r_dy - r_px*r_dy = s_py*r_dx + s_dy*T2*r_dx - r_py*r_dx
+		// ==> T2 = (r_dx*(s_py-r_py) + r_dy*(r_px-s_px))/(s_dx*r_dy - s_dy*r_dx)
+		var T2 = (r_dx*(s_py-r_py) + r_dy*(r_px-s_px))/(s_dx*r_dy - s_dy*r_dx);
+		var T1 = (s_px+s_dx*T2-r_px)/r_dx;
+
+		// If the following conditions are not true, there is no valid interception
+		// (meaning the interception is outside the segment)
+		// res.v and res.param will be null
+		if(T1<0) return res;
+		if(T2<0 || T2>1) return res;
+
+		//Found interception
+		res.v = new Vector3(r_px+r_dx*T1, r_py+r_dy*T1, 0);
+		res.param = T1;
+
+		return res;
+
 	}
 
 
 	// a = a * sgn(b)
 	// http://stackoverflow.com/a/1905142
-	float copysign(float a,float b)
+	static float copysign(float a,float b)
 	{
 		return (a*Mathf.Sign(b));
 	}
@@ -142,7 +191,7 @@ public class Geometry : MonoBehaviour {
 /// <summary>
 /// Intersection in parametric form, centered in the origin (v*param).
 /// </summary>
-struct Intersection : System.IComparable<Intersection>
+public struct Intersection : System.IComparable<Intersection>
 {
 	public float? angle {get;set;}
 	public float? param {get;set;}
@@ -153,7 +202,7 @@ struct Intersection : System.IComparable<Intersection>
 	}
 }
 
-struct PseudoAngleLocationTuple : System.IComparable<PseudoAngleLocationTuple>
+public struct PseudoAngleLocationTuple : System.IComparable<PseudoAngleLocationTuple>
 {
 	public float pAngle {get;set;}
 	public Vector3 point {get;set;}
@@ -164,7 +213,7 @@ struct PseudoAngleLocationTuple : System.IComparable<PseudoAngleLocationTuple>
 }
 
 //Ray from A to B
-struct Ray2D
+public struct Ray2D
 {
 	public Vector2 a {get; set;}
 	public Vector2 b {get; set;}
@@ -183,7 +232,7 @@ struct Ray2D
 }
 
 //Segment from a to b
-struct Segment2D
+public struct Segment2D
 {
 	public Vector2 a {get; set;}
 	public Vector2 b {get; set;}
