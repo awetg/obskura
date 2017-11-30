@@ -11,7 +11,7 @@ public class PlayerMovement : MonoBehaviour {
 	private Animator PlayerAnimator;
 
 	public float Seconds;		//CAN BE DELETED EVERYWHERE IF NOT WANTED How many seconds delay before it calls/invoke Move() method
-	private int hp = 100;	//player hp, updated from enemies and sent to gamecontroller to screen
+	private float hp = 100;	//player hp, updated from enemies and sent to gamecontroller to screen
 	private Vector3 target;		//used to get mouse position as vector3 in Move() method, vector2 can't take 3 argument so can't be used
 	public float StopDistance;		//How far player have to stop before reaching mouse position, small value is needed here
 	private bool moving = false;	//used to stop player/or stop calling Move() method, when stopDistance is reached
@@ -116,13 +116,16 @@ public class PlayerMovement : MonoBehaviour {
 				break;
 			}
 		}
-		GameController.SelectWeapon (New_Weapon);	//select the weapon on screen
+		//NOTE: The controller should check for a weapon change by using Player.GetCurrentWeapon()
+		//GameController.SelectWeapon (New_Weapon);	//select the weapon on screen
 	}
 
 	public void DamagePlayer(int coming_hp){	//will be called from Enemy
 //<summary> update player hp, send current hp to gameconstroller and kill player if hp is 0</summary>
 		hp =hp - coming_hp;
-		GameController.ShowDamage (hp);	//send hp to screen, only player hp get displayed
+
+		//NOTE: The controller should command to write the player's hp to screen
+		//GameController.ShowDamage (hp);	//send hp to screen, only player hp get displayed
 
 		if (hp <= 0) {
 //			PlayerAnimator.SetBool ("Dead", true);	//start dead animation
@@ -130,11 +133,22 @@ public class PlayerMovement : MonoBehaviour {
 			this.enabled = false;
 			CancelInvoke ();
 			MyRigidbody.isKinematic = true;
-			GameController.RestartText ();
+			//GameController.RestartText (); //Move the ckeck in the controller, by using Player.IsAlive() method
 			gameObject.GetComponent<Collider> ().enabled = false;
 		}
 	}
 
+	public bool IsAlive(){
+		return (hp > 0);
+	}
+
+	public float GetHP(){
+		return hp;
+	}
+
+	public PlayerWeaponType GetCurrentWeapon(){
+		return currentWeapon;
+	}
 
 	/// <summary>
 	/// Alerts the enemies when player is close.

@@ -6,18 +6,18 @@ using UnityEngine.UI;
 public class GameController : MonoBehaviour {
 
 	public Text HpText;	//to show hp number int hp will be converted it will start 100 by default
-	int hp=100;	//hp number
+	int hp=100;	//hp number //Probably better to move it in Player
 	public GameObject restart,torch,gun,endOfGame;	//GameObjects or items to be manipulated while play
 	public bool gameOver=false; //if true restart GameObject will be active
 	public bool labClose=false;	//if true acitvate endOfGame GameObject
 
-	static GameController gameController;	//bcs we will use Awake() , only one object of this will be created
-											//and manipulate the other variables in this class in different play
+	Geometry geometry = new Geometry(); //Geometry data about the walls
+	public OLightManager lightManager; // See OLightManager.cs
 
 	void Awake()
 	{
-		gameController = this;
-
+		this.tag = "Controller";
+		//FIXME: Add code to check if the game controller is unique and otherwise throw an exception
 	}
 
 	// Use this for initialization
@@ -33,29 +33,29 @@ public class GameController : MonoBehaviour {
 			SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 		}
 		if (labClose) {
-			gameController.endOfGame.SetActive(true);	//if player achieve main objective activate object used to exit Lab
+			endOfGame.SetActive(true);	//if player achieve main objective activate object used to exit Lab
 		}
 	}
 
-	public static void ShowDamage(int hpamount){	//called from playerMovement() after damage registered
-		gameController.hp -= hpamount;
-		gameController.HpText.text = gameController.hp.ToString (); //conver hp(int) to string
+	public void ShowDamage(int hpamount){	//called from playerMovement() after damage registered
+		hp -= hpamount;
+		HpText.text = hp.ToString (); //conver hp(int) to string
 	}
 
-	public static void RestartText(){	//RestartWindow() method will be called from PlayerMovemnt() if registered damage is fatal
-		gameController.restart.SetActive (true);
-		gameController.gameOver = true;
+	public void RestartText(){	//RestartWindow() method will be called from PlayerMovemnt() if registered damage is fatal
+		restart.SetActive (true);
+		gameOver = true;
 	}
 
-	public static void SelectWeapon(PlayerWeaponType weaponType){
+	public void SelectWeapon(PlayerWeaponType weaponType){
 		switch (weaponType) {
 		case PlayerWeaponType.TORCH:
-			gameController.torch.SetActive (true);//make an object look active on window
-			gameController.gun.SetActive (false);
+			torch.SetActive (true);//make an object look active on window
+			gun.SetActive (false);
 			break;
 		case PlayerWeaponType.GUN:
-			gameController.torch.SetActive (false);
-			gameController.gun.SetActive (true);
+			torch.SetActive (false);
+			gun.SetActive (true);
 			break;
 		}
 	}
