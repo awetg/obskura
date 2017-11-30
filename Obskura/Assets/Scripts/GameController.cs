@@ -37,7 +37,7 @@ public class GameController : MonoBehaviour {
 		}
 	}
 
-	public void ShowDamage(int hpamount){	//called from playerMovement() after damage registered
+	void ShowDamage(int hpamount){	//called from playerMovement() after damage registered
 		hp -= hpamount;
 		HpText.text = hp.ToString (); //conver hp(int) to string
 	}
