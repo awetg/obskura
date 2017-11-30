@@ -42,12 +42,12 @@ public class GameController : MonoBehaviour {
 		HpText.text = hp.ToString (); //conver hp(int) to string
 	}
 
-	public void RestartText(){	//RestartWindow() method will be called from PlayerMovemnt() if registered damage is fatal
+	void RestartText(){	//RestartWindow() method will be called from PlayerMovemnt() if registered damage is fatal
 		restart.SetActive (true);
 		gameOver = true;
 	}
 
-	public void SelectWeapon(PlayerWeaponType weaponType){
+	void SelectWeapon(PlayerWeaponType weaponType){
 		switch (weaponType) {
 		case PlayerWeaponType.TORCH:
 			torch.SetActive (true);//make an object look active on window
