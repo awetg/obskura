@@ -11,7 +11,6 @@ public class GameController : MonoBehaviour {
 	public bool gameOver=false; //if true restart GameObject will be active
 	public bool labClose=false;	//if true acitvate endOfGame GameObject
 
-	Geometry geometry = new Geometry(); //Geometry data about the walls
 	public OLightManager lightManager; // See OLightManager.cs
 
 	void Awake()

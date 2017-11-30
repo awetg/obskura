@@ -17,8 +17,7 @@ public class OLight : MonoBehaviour {
 
 
 
-	List<Segment2D> segments = new List<Segment2D>(); //Segments of the walls or light blocking objects
-	List<Vector3> vertices = new List<Vector3>(); //Vertices of the walls or light blocking objects
+
 	List<Intersection> intersects = new List<Intersection>(); //Interceptions between rays and segments
 	List<float> vertAngles = new List<float>(); //Angles of the vertices
 
@@ -34,7 +33,7 @@ public class OLight : MonoBehaviour {
 
 	//
 	bool computed = false;
-	bool debugFlag = false;
+	//bool debugFlag = false;
 
 	//Exposing parameters to the inspector
 	public Vector2 Position;
@@ -49,32 +48,22 @@ public class OLight : MonoBehaviour {
 	{
 		lightMesh = new Mesh();
 		meshFilter = GetComponent<MeshFilter>();
-
-		CollectVertices ();
 	}
 
 	/// <summary>
-	/// Refreshs the vertices.
+	/// Refreshs the light mesh (for static lights).
 	/// Call when the shadown casting objects in the map move or change.
 	/// </summary>
-	public void RefreshVertices(){
-		lightMesh = new Mesh();
-		meshFilter = GetComponent<MeshFilter>();
-		CollectVertices ();
-	}
+	public void RefreshLight(){
 
-	void Update () 
-	{
-		if (Static) {
-			Mouse = false;
-			if (computed)
-				return;
-		}
+		List<Segment2D> segments = Geometry.GetSegments (); //Segments of the walls or light blocking objects
+		List<Vector3> vertices = Geometry.GetVertices(); //Vertices of the walls or light blocking objects
+
 
 		// Get the light position
 		Vector3 pos = Mouse ? Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,Input.mousePosition.y,10))
 			: new Vector3(Position.x, Position.y, 0);
-		
+
 		const float delta = 0.00001f;
 
 		// Set the current position in the shader
@@ -136,7 +125,7 @@ public class OLight : MonoBehaviour {
 
 			// Get all the possible intersections between the ray and the segments
 			var allIntersct = 
-				segments.Select (s => getIntersection (ray, s));
+				segments.Select (s => Geometry.GetIntersection (ray, s));
 
 			// Find the nearest intersection
 			Intersection nearestIntersection = 
@@ -225,124 +214,26 @@ public class OLight : MonoBehaviour {
 		meshFilter.mesh = lightMesh;
 		computed = true;
 
-		//FIXME: DEBUG
-		Vector2 mpos = Camera.main.ScreenToWorldPoint (new Vector2 (Input.mousePosition.x, Input.mousePosition.y));
+		//DEBUG
+		/*Vector2 mpos = Camera.main.ScreenToWorldPoint (new Vector2 (Input.mousePosition.x, Input.mousePosition.y));
 
 		if (PointIsInLight (mpos) != debugFlag) {
 			debugFlag = !debugFlag;
 			Debug.Log(debugFlag);
-		}
-
-
-
+		}*/
 	}
 
-
-
-
-	void CollectVertices ()
+	void Update () 
 	{
-		//Clear the vertices list, since it might not be the first time
-		//the vertices are collected (immagine moving walls).
-		vertices.Clear (); 
-
-		// Collect all the game objects that are supposed to react to light
-		GameObject[] gos = GameObject.FindGameObjectsWithTag("Wall");
-
-		// Get all the vertices
-		foreach (GameObject go in gos)
-		{
-			Mesh goMesh = go.GetComponent<MeshFilter>().mesh;
-			int[] tris = goMesh.triangles;
-
-			var uniqueTris = tris.Distinct ().ToArray();
-				//new List<int>();
-			//uniqueTris.Clear();
-
-			// Collect unique tris
-			/*for (int i = 0; i < tris.Length; i++) 
-			{
-
-				if (!uniqueTris.Contains(tris[i])) 
-				{
-					uniqueTris.Add(tris[i]);
-				}
-			} // for tris*/
-
-
-			// Calculate pseudoangles (much faster than angles)
-			List<PseudoAngleLocationTuple> psAngLocTuples = new List<PseudoAngleLocationTuple>();
-			for (int n=0;n<uniqueTris.Length;n++)
-			{
-				float x = goMesh.vertices[uniqueTris[n]].x;
-				float y = goMesh.vertices[uniqueTris[n]].y;
-
-				// Sort by angle without calculating the angle
-				// http://stackoverflow.com/questions/16542042/fastest-way-to-sort-vectors-by-angle-without-actually-computing-that-angle
-				float psAng = copysign(1-x/(Mathf.Abs (x)+Mathf.Abs(y)),y);
-
-				PseudoAngleLocationTuple psLoc = new PseudoAngleLocationTuple();
-				psLoc.pAngle = psAng;
-				psLoc.point = goMesh.vertices[uniqueTris[n]];
-				psAngLocTuples.Add(psLoc);
-			}
-
-			// Sort by pseudoangle
-			psAngLocTuples.Sort();
-
-			// Get sorted list of points
-			List<Vector3> sortedVerts = psAngLocTuples.Select(x => x.point).ToList();
-				//new List<Vector3>();
-			//uniqueTris.Clear();
-			/*for (int n=0; n < psAngLocTuples.Count; n++)
-			{
-				sortedVerts.Add(psAngLocTuples[n].point);
-			}*/
-
-			// Add world borders, necessary to prevent misbehaviour if the world is not closed
-			const int safetyRange = 1000;
-			Camera cam = Camera.main;
-			Vector3 b1 = cam.ScreenToWorldPoint(new Vector3(-safetyRange, -safetyRange, Camera.main.nearClipPlane + 0.1f+safetyRange)); // bottom left
-			Vector3 b2 = cam.ScreenToWorldPoint(new Vector3(-safetyRange, cam.pixelHeight+safetyRange, cam.nearClipPlane + 0.1f+safetyRange)); // top left
-			Vector3 b3 = cam.ScreenToWorldPoint(new Vector3(cam.pixelWidth+safetyRange, cam.pixelHeight, cam.nearClipPlane + 0.1f+safetyRange)); // top right
-			Vector3 b4 = cam.ScreenToWorldPoint(new Vector3(cam.pixelWidth+safetyRange, -safetyRange, cam.nearClipPlane + 0.1f+safetyRange)); // bottom right
-
-			// Transform world borders into vertices
-			Segment2D seg1 = new Segment2D();
-			seg1.a = new Vector2(b1.x,b1.y);
-			seg1.b = new Vector2(b2.x,b2.y);
-			segments.Add(seg1);
-
-			seg1.a = new Vector2(b2.x,b2.y);
-			seg1.b = new Vector2(b3.x,b3.y);
-			segments.Add(seg1);
-
-			seg1.a = new Vector2(b3.x,b3.y);
-			seg1.b = new Vector2(b4.x,b4.y);
-			segments.Add(seg1);
-
-			seg1.a = new Vector2(b4.x,b4.y);
-			seg1.b = new Vector2(b1.x,b1.y);
-			segments.Add(seg1);
-
-			// Connect the vertices with segment
-			// Since they are sorted by angle, they will be connected counter-clockwise
-			for (int n=0;n < sortedVerts.Count;n++)
-			{
-				// Segment start
-				Vector3 wPos1 = go.transform.TransformPoint(sortedVerts[n]);
-
-				// Segment end
-				Vector3 wPos2 = go.transform.TransformPoint(sortedVerts[(n+1) % sortedVerts.Count]);
-
-				vertices.Add(wPos1);
-
-				Segment2D seg = new Segment2D();
-				seg.a = new Vector2(wPos1.x,wPos1.y);
-				seg.b = new Vector2(wPos2.x, wPos2.y);
-				segments.Add(seg);
-			}
+		if (Static) {
+			Mouse = false;
+			if (computed)
+				return;
 		}
+
+		RefreshLight ();
+
+
 	}
 
 	/// <summary>
@@ -377,7 +268,7 @@ public class OLight : MonoBehaviour {
 		//Cast a ray from thee light to the point to test
 		Ray2D ray = new Ray2D(transform.position, p);
 		//Get all the intersections between the segments if the light poligon and the casted ray
-		var allIntersct = polySegments.Select (s => getIntersection (ray, s));
+		var allIntersct = polySegments.Select (s => Geometry.GetIntersection (ray, s));
 		// Find the number of intersections until the point (param < 1.0F)
 		var intersectCount = allIntersct.Where (x => x.v != null && x.param <= 1.0F).Count();
 
@@ -396,55 +287,6 @@ public class OLight : MonoBehaviour {
 	}
 
 
-	// Find intersection of ray and segment
-	// http://ncase.me/sight-and-light/
-	Intersection getIntersection(Ray2D ray, Segment2D segment)
-	{
-		Intersection res = new Intersection();
-
-		// Ray in parametric form: Point + Delta*T1
-		float r_px = ray.a.x;
-		float r_py = ray.a.y;
-		float r_dx = ray.b.x-ray.a.x;
-		float r_dy = ray.b.y-ray.a.y;
-
-		// Segment in parametric form: Point + Delta*T2
-		float s_px = segment.a.x;
-		float s_py = segment.a.y;
-		float s_dx = segment.b.x-segment.a.x;
-		float s_dy = segment.b.y-segment.a.y;
-
-		// Get the magnitudes
-		var r_mag = Mathf.Sqrt(r_dx*r_dx+r_dy*r_dy);
-		var s_mag = Mathf.Sqrt(s_dx*s_dx+s_dy*s_dy);
-
-		// Check if they are parallel
-		if(r_dx/r_mag==s_dx/s_mag && r_dy/r_mag==s_dy/s_mag) // Unit vectors are the same
-		{
-			return res; 
-		}
-
-		// SOLVE FOR T1 & T2
-		// r_px+r_dx*T1 = s_px+s_dx*T2 && r_py+r_dy*T1 = s_py+s_dy*T2
-		// ==> T1 = (s_px+s_dx*T2-r_px)/r_dx = (s_py+s_dy*T2-r_py)/r_dy
-		// ==> s_px*r_dy + s_dx*T2*r_dy - r_px*r_dy = s_py*r_dx + s_dy*T2*r_dx - r_py*r_dx
-		// ==> T2 = (r_dx*(s_py-r_py) + r_dy*(r_px-s_px))/(s_dx*r_dy - s_dy*r_dx)
-		var T2 = (r_dx*(s_py-r_py) + r_dy*(r_px-s_px))/(s_dx*r_dy - s_dy*r_dx);
-		var T1 = (s_px+s_dx*T2-r_px)/r_dx;
-
-		// If the following conditions are not true, there is no valid interception
-		// (meaning the interception is outside the segment)
-		// res.v and res.param will be null
-		if(T1<0) return res;
-		if(T2<0 || T2>1) return res;
-
-		//Found interception
-		res.v = new Vector3(r_px+r_dx*T1, r_py+r_dy*T1, 0);
-		res.param = T1;
-
-		return res;
-
-	}
 
 
 
@@ -452,12 +294,6 @@ public class OLight : MonoBehaviour {
 	 * Helper Functions
 	 */
 
-	// a = a * sgn(b)
-	// http://stackoverflow.com/a/1905142
-	float copysign(float a,float b)
-	{
-		return (a*Mathf.Sign(b));
-	}
 
 	float mod(float a, float n) {
 		return a - Mathf.Floor (a / n) * n;
@@ -473,62 +309,4 @@ public class OLight : MonoBehaviour {
 			return true;
 		return false;
 	}
-
-	/// <summary>
-	/// Intersection in parametric form, centered in the origin (v*param).
-	/// </summary>
-	struct Intersection : System.IComparable<Intersection>
-	{
-		public float? angle {get;set;}
-		public float? param {get;set;}
-		public Vector3? v { get; set;}
-
-		public int CompareTo(Intersection that) {
-			return this.param.Value.CompareTo(that.param.Value);
-		}
-	}
-
-	struct PseudoAngleLocationTuple : System.IComparable<PseudoAngleLocationTuple>
-	{
-		public float pAngle {get;set;}
-		public Vector3 point {get;set;}
-
-		public int CompareTo(PseudoAngleLocationTuple that) { 
-			return this.pAngle.CompareTo(that.pAngle); 
-		}
-	}
-
-	//Ray from A to B
-	struct Ray2D
-	{
-		public Vector2 a {get; set;}
-		public Vector2 b {get; set;}
-
-		public Ray2D(Vector2 _a, Vector2 _b)
-		{
-			this.a = _a;
-			this.b = _b;
-		}
-
-		public Ray2D(Vector3 _a, Vector3 _b)
-		{
-			this.a = new Vector2(_a.x, _a.y);
-			this.b = new Vector2(_b.x, _b.y);
-		}
-	}
-
-	//Segment from a to b
-	struct Segment2D
-	{
-		public Vector2 a {get; set;}
-		public Vector2 b {get; set;}
-
-		public Segment2D(Vector2 _a, Vector2 _b)
-		{
-			this.a = _a;
-			this.b = _b;
-		}
-
-	}
-
 }
