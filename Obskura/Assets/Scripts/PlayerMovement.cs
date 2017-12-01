@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public enum PlayerWeaponType{TORCH,GUN,NULL}	//items, will also be accessed from Gameconstroller
+public enum PlayerWeaponType{TORCH,GUN,NULL}	//items, will also be accessed from Gamecontroller
 
 public class PlayerMovement : MonoBehaviour {
 	
@@ -53,14 +53,6 @@ public class PlayerMovement : MonoBehaviour {
 //			if (Input.GetKeyDown (KeyCode.Space))	//if spacebar clicked fire => Attack
 //			Attack();
 //		}
-
-		///// WEAPON CHANGE IF KEYS PRESSED //////////
-		if (Input.GetKeyDown (KeyCode.Alpha1))	//if press 1 change weapon to torch
-			SetWeapon (PlayerWeaponType.TORCH);
-		if (Input.GetKeyDown (KeyCode.Alpha2))	//if press 2 change weapon to gun
-			SetWeapon (PlayerWeaponType.GUN);
-		
-		// ATTACK AND WEAPON CHANGE CAN BE ALL MOVED TO GAMECONTROLLER
     }
 
 
@@ -103,7 +95,7 @@ public class PlayerMovement : MonoBehaviour {
 	/// Sets the weapon.
 	/// </summary>
 	/// <param name="New_Weapon">New weapon.</param>
-	void SetWeapon(PlayerWeaponType New_Weapon){
+	public void SetWeapon(PlayerWeaponType New_Weapon){
 		if (New_Weapon != currentWeapon) {	//do only if new_weapon is different from currentWeapon
 			currentWeapon = New_Weapon;
 //			PlayerAnimator.SetTrigger ("WeaponChange"); 	//change to new animation state
@@ -120,10 +112,9 @@ public class PlayerMovement : MonoBehaviour {
 		//GameController.SelectWeapon (New_Weapon);	//select the weapon on screen
 	}
 
-	public void DamagePlayer(int coming_hp){	//will be called from Enemy
-//<summary> update player hp, send current hp to gameconstroller and kill player if hp is 0</summary>
+	public void DamagePlayer(int coming_hp){
+		
 		hp =hp - coming_hp;
-
 		//NOTE: The controller should command to write the player's hp to screen
 		//GameController.ShowDamage (hp);	//send hp to screen, only player hp get displayed
 
@@ -132,9 +123,7 @@ public class PlayerMovement : MonoBehaviour {
 //			PlayerAnimator.transform.parent = null;
 			this.enabled = false;
 			CancelInvoke ();
-			MyRigidbody.isKinematic = true;
-			//GameController.RestartText (); //Move the ckeck in the controller, by using Player.IsAlive() method
-			gameObject.GetComponent<Collider> ().enabled = false;
+			Destroy (gameObject);
 		}
 	}
 
@@ -146,9 +135,9 @@ public class PlayerMovement : MonoBehaviour {
 		return hp;
 	}
 
-	public PlayerWeaponType GetCurrentWeapon(){
-		return currentWeapon;
-	}
+//	public PlayerWeaponType GetCurrentWeapon(){	// NOTE: no need to get weapon type now,bcs gamecontroller set weaapon type
+//		return currentWeapon;
+//	}
 
 	/// <summary>
 	/// Alerts the enemies when player is close.
