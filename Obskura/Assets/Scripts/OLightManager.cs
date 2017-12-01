@@ -23,7 +23,7 @@ public class OLightManager : MonoBehaviour {
 		LightCamera.orthographicSize = MainCamera.orthographicSize;
 		LightCamera.aspect = MainCamera.aspect;
 
-		UICamera.targetTexture = new RenderTexture(LightCamera.pixelWidth, LightCamera.pixelHeight, 24);
+		UICamera.targetTexture = new RenderTexture(UICamera.pixelWidth, UICamera.pixelHeight, 24);
 
 		UICamera.orthographicSize = MainCamera.orthographicSize;
 		UICamera.aspect = MainCamera.aspect;

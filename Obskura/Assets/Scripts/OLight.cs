@@ -15,9 +15,6 @@ using UnityEngine;
 
 public class OLight : MonoBehaviour {
 
-
-
-
 	List<Intersection> intersects = new List<Intersection>(); //Interceptions between rays and segments
 	List<float> vertAngles = new List<float>(); //Angles of the vertices
 

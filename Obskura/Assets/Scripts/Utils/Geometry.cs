@@ -7,6 +7,7 @@ public static class Geometry {
 
 	static List<Segment2D> segments = new List<Segment2D>(); //Segments of the walls or light blocking objects
 	static List<Vector3> vertices = new List<Vector3>(); //Vertices of the walls or light blocking objects
+	static List<Polygon2D> walls = new List<Polygon2D>(); //Walls as polygon (for collision checking)
 
 	public static void CollectVertices() {
 		CollectVertices (new string[1] {"Wall"});
@@ -80,6 +81,9 @@ public static class Geometry {
 				sortedVerts.Add(psAngLocTuples[n].point);
 			}*/
 
+			if (sortedVerts.Count () <= 0)
+				continue;
+
 			// Add world borders, necessary to prevent misbehaviour if the world is not closed
 			const int safetyRange = 1000;
 			Camera cam = Camera.main;
@@ -106,10 +110,22 @@ public static class Geometry {
 			seg1.b = new Vector2(b1.x,b1.y);
 			segments.Add(seg1);
 
+			List<Segment2D> wall = new List<Segment2D> ();
+
+			//To calculate a point outside the wall
+			const float margin = 1;
+			float maxX = sortedVerts[0].x + margin, maxY = sortedVerts[0].y + margin;
+
 			// Connect the vertices with segment
 			// Since they are sorted by angle, they will be connected counter-clockwise
 			for (int n=0;n < sortedVerts.Count;n++)
 			{
+				if (sortedVerts [n].x >= maxX)
+					maxX = sortedVerts [n].x + margin;
+
+				if (sortedVerts [n].y >= maxY)
+					maxX = sortedVerts [n].y + margin;
+
 				// Segment start
 				Vector3 wPos1 = go.transform.TransformPoint(sortedVerts[n]);
 
@@ -121,9 +137,61 @@ public static class Geometry {
 				Segment2D seg = new Segment2D();
 				seg.a = new Vector2(wPos1.x,wPos1.y);
 				seg.b = new Vector2(wPos2.x, wPos2.y);
-				segments.Add(seg);
+				segments.Add(seg); //Add the segment to the global list of segments
+				wall.Add (seg); //Add the segment to the wall polygon
 			}
+
+			walls.Add (new Polygon2D (_segments : wall, _outside : new Vector2 (maxX, maxY)));
+			
 		}
+	}
+
+	public static bool IsPointInAWall(Vector2 p){
+		return IsPointInAWall(new Vector3(p.x, p.y, 0));
+	}
+
+	public static bool IsPointInAWall(Vector3 p){
+		return walls.Exists (w => PolygonContainsPoint (w, p));
+	}
+
+	public static bool IsInLineOfSight(Vector2 a, Vector2 b){
+		return IsInLineOfSight (new Vector3 (a.x, a.y, 0), new Vector3 (b.x, b.y, 0));
+	}
+
+	/// <summary>
+	/// Determines if there is a direct line of sight between two points.
+	/// </summary>
+	/// <returns><c>true</c> if there is a direct line of sight from a to b; otherwise, <c>false</c>.</returns>
+	/// <param name="a">Point A.</param>
+	/// <param name="b">Point B.</param>
+	public static bool IsInLineOfSight(Vector3 a, Vector3 b){
+		Ray2D ray = new Ray2D(a, b);
+
+		return segments.TrueForAll(s => {
+			var intersect = GetIntersection(ray, s);
+			return intersect.v == null || intersect.param > 1.0;}
+		);
+	}
+
+	/// <summary>
+	/// Check if a polygon contains the point.
+	/// Only xy plane is considered.
+	/// </summary>
+	/// <returns><c>true</c>, if point was contained, <c>false</c> otherwise.</returns>
+	/// <param name="polygon">Polygon object.</param>
+	/// <param name="p">Point</param>
+	public static bool PolygonContainsPoint (Polygon2D polygon, Vector3 p)  { 
+		//Cast a ray from the outside the polygon to the point to test
+		Ray2D ray = new Ray2D(new Vector3(polygon.outside.x, polygon.outside.y, 0), p);
+		//Get all the intersections between the segments if the light poligon and the casted ray
+		var allIntersct = polygon.segments.Select (s => Geometry.GetIntersection (ray, s));
+		// Find the number of intersections until the point (param < 1.0F)
+		var intersectCount = allIntersct.Where (x => x.v != null && x.param <= 1.0F).Count();
+
+		if (intersectCount % 2 != 0)
+			return true;
+		else
+			return false;
 	}
 
 
@@ -241,6 +309,19 @@ public struct Segment2D
 	{
 		this.a = _a;
 		this.b = _b;
+	}
+
+}
+
+public struct Polygon2D
+{
+	public List<Segment2D> segments;
+	public Vector2 outside;
+
+	public Polygon2D(List<Segment2D> _segments, Vector2 _outside)
+	{
+		this.segments = _segments;
+		this.outside = _outside;
 	}
 
 }
