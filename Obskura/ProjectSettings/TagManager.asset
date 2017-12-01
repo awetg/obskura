@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - Wall
+  - Enemy
+  - Teleporter
+  - Obskura
   layers:
   - Default
   - TransparentFX
