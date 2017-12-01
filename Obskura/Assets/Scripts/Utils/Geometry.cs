@@ -154,6 +154,26 @@ public static class Geometry {
 		return walls.Exists (w => PolygonContainsPoint (w, p));
 	}
 
+	public static bool IsSquareInAWall(Vector3 p, float size){
+		float halfSide = size / 2;
+		List<Vector2> vertices = new List<Vector2> (4);
+		vertices.Add (p.x + halfSide, p.y + halfSide);
+		vertices.Add (p.x + halfSide, p.y - halfSide);
+		vertices.Add (p.x - halfSide, p.y + halfSide);
+		vertices.Add (p.x - halfSide, p.y - halfSide);
+		return vertices.Exists(v => IsPointInAWall(v));
+	}
+
+	public static bool IsRectangleInAWall(Vector3 p, float w, float h){
+		float hw = w / 2, hh = h / 2;
+		List<Vector2> vertices = new List<Vector2> (4);
+		vertices.Add (p.x + hw, p.y + hh);
+		vertices.Add (p.x + hw, p.y - hh);
+		vertices.Add (p.x - hw, p.y + hh);
+		vertices.Add (p.x - hw, p.y - hh);
+		return vertices.Exists(v => IsPointInAWall(v));
+	}
+
 	public static bool IsInLineOfSight(Vector2 a, Vector2 b){
 		return IsInLineOfSight (new Vector3 (a.x, a.y, 0), new Vector3 (b.x, b.y, 0));
 	}
