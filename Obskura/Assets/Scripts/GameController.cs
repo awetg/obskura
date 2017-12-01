@@ -12,6 +12,7 @@ public class GameController : MonoBehaviour {
 	public bool labClose=false;	//if true acitvate endOfGame GameObject
 
 	public OLightManager lightManager; // See OLightManager.cs
+	private PlayerMovement player;	// to access public methods of player
 
 	void Awake()
 	{
@@ -26,6 +27,15 @@ public class GameController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+
+		if (Input.GetKeyDown (KeyCode.Alpha1)) {
+			player.SetWeapon (PlayerWeaponType.TORCH);
+			SelectWeapon(PlayerWeaponType.TORCH);
+		}
+		if (Input.GetKeyDown (KeyCode.Alpha2)){
+			player.SetWeapon (PlayerWeaponType.GUN);
+			SelectWeapon(PlayerWeaponType.GUN);
+		}
 		
 		if (gameOver && Input.GetKeyDown(KeyCode.R))	//if user press r, game is reloaded
 		{
@@ -39,11 +49,10 @@ public class GameController : MonoBehaviour {
 	void ShowDamage(int hpamount){	//called from playerMovement() after damage registered
 		hp -= hpamount;
 		HpText.text = hp.ToString (); //conver hp(int) to string
-	}
-
-	void RestartText(){	//RestartWindow() method will be called from PlayerMovemnt() if registered damage is fatal
-		restart.SetActive (true);
-		gameOver = true;
+		if (hp <= 0) {
+			restart.SetActive (true);
+			gameOver = true;
+		}
 	}
 
 	void SelectWeapon(PlayerWeaponType weaponType){

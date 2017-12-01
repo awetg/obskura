@@ -15,15 +15,13 @@ public class Enemy : MonoBehaviour {
 	public float chaseTime;	//how long enemy chase player after detection
 	public Animator EnemyAnimator;	//for enemy animation
 	public NavMeshAgent MynavMeshAgent;
-	Vector3 targetPosition;
 	public EnemyPath startNode;		//start node to move until enemy detection, set in INSPECTOR
-	EnemyState currentState = EnemyState.NONE;	//needed variable for control of states
+	private EnemyState currentState = EnemyState.NONE;	//needed variable for control of states
 	public EnemyState startState = EnemyState.IDLE;	//can be made public to choose from INSPECTOR
-	public LayerMask hitTestLayer;
 	float Hades_weaponRange = 1.0f;	// this enemy don't have weapon, need to be close to register damage
-	public Transform AttackPivot;
-	public Transform target;
 	private float distance;
+	private Vector3 targetPosition;
+	private Transform target;
 
 	delegate void State();	//you gotta read about this, very intersting stuff
 	State intialState;
@@ -48,16 +46,14 @@ public class Enemy : MonoBehaviour {
 
 	/// IDLE:  follow designeted path until player detection ///
 
-	/// <summary>
-	/// Starts the path. Called only once when state changes to IDLE
-	/// </summary>
+
 	void StartPath(){	
 		MynavMeshAgent.speed = 1.0f;
 		MynavMeshAgent.SetDestination (startNode.GetPosition ());
 	}
 
 	void ContinuePath(){	
-		if (ReachedMyDestination ()) {
+		if (Vector3.Distance (transform.position, MynavMeshAgent.destination)<0.2) {
 			startNode = startNode.nextNode;
 			MynavMeshAgent.SetDestination (startNode.GetPosition ());
 		}
@@ -70,25 +66,27 @@ public class Enemy : MonoBehaviour {
 
 	///// CHASE ////
 
-	bool stopchase;
+	public float timer;	//public for debug
 
-	/// <summary>
-	/// Starts the chase. Called once only when state change to CHASE
-	/// </summary>
 	void StartChase(){	
-		MynavMeshAgent.speed = 1.0f;	//increase speed
+		MynavMeshAgent.speed = 1.2f;	//increase speed
 		MynavMeshAgent.isStopped=false;	//resume Movement with icreased speed
+		timer = 0.0f;
 	}
 
 	void ContinueChase(){	
-		if (target) {
-			MynavMeshAgent.SetDestination (target.position);
+		timer += Time.deltaTime;
+		if (target && timer<chaseTime) {
+
+			if (Vector3.Distance (target.position, transform.position) < Hades_weaponRange)
+				SetState (EnemyState.ATTACK);
+			else
+				MynavMeshAgent.SetDestination (target.position);
+
 		} else {
-			if (target == null) {
-				target = this.gameObject.GetComponent<Transform> ();
-			} else {
-				target = GameObject.FindGameObjectWithTag ("Player").transform;
-			}
+			Vector3 backToNode = startNode.transform.position;
+			MynavMeshAgent.SetDestination (backToNode);
+			SetState (EnemyState.IDLE);
 		}
 	}
 
@@ -100,31 +98,34 @@ public class Enemy : MonoBehaviour {
 
 	/// ATTACK ///
 
+	float attackTime;
+
+	void StartAttack(){
+		MynavMeshAgent.isStopped=true;	//stop enemy movement to do attack
+		MynavMeshAgent.velocity = Vector3.zero;
+		//		EnemyAnimator.SetBool ("Attack", true);
+		target.GetComponent<PlayerMovement> ().DamagePlayer (2);
+		attackTime = 2.0f;
+	}
+
+	void ContinueAttack(){
+		attackTime -= Time.deltaTime;
+		if(attackTime > 0){
+
+			if (Vector3.Distance (target.position, transform.position) < Hades_weaponRange)
+				target.GetComponent<PlayerMovement> ().DamagePlayer (2);
+			else
+				EndAttack ();
+			SetState (EnemyState.CHASE);
+		}
+	}
+
+
+	void EndAttack(){
+		//		EnemyAnimator.SetBool ("Attack", false);
+	}
 
 	/// ATTACK : END ///
-
-
-	void Damage(){
-		
-		RaycastHit[] hits=Physics.SphereCastAll (AttackPivot.position,Hades_weaponRange, AttackPivot.forward);
-			foreach(RaycastHit hit in hits)
-				if (hit.collider!=null && hit.collider.tag == "Player")
-				hit.collider.GetComponent<PlayerMovement>().DamagePlayer(20);
-	}
-
-		
-	/// <summary>
-	/// Chech if target position reached.
-	/// </summary>
-	/// <returns><c>true</c>, if my destination was reacheded, <c>false</c> otherwise.</returns>
-	public bool ReachedMyDestination(){
-		float distance = Vector3.Distance (transform.position, MynavMeshAgent.destination);
-		if ( distance<= 1.5f) {
-			return 	true;
-		}
-
-		return false;
-	}
 
 	/// <summary>
 	/// Sets the state of the enemy, callled in start() method to set from NONE to IDLE at first
@@ -148,73 +149,43 @@ public class Enemy : MonoBehaviour {
 				endState = EndChase;
 				break;
 
-//			case EnemyState.ATTACK:
-//				intialState = StartAttack;
-//				updateState = ContinueAttack;
-//				endState = EndAttack;
-//				break;
+			case EnemyState.ATTACK:
+				intialState = StartAttack;
+				updateState = ContinueAttack;
+				endState = EndAttack;
+				break;
 			}
 
 			intialState();	//call the intial method of the state, only if the states chages, as the conditon is set in if()		
 			currentState=newState;
 		}
 	}
-
-
-
-
-
-
-
-
-
-
-	/// WE ARE NOT USING THOSE FUNCTIONS BELOW FOR THE TIME BEING ///
-
-
-	/// <summary>
-//	/ Sets the alert position. public called from player, when player is near enemy
-//	/ </summary>
-//	/ <param name="newPosition">New position.</param>
-	public void SetAlertPosition(Vector3 newPosition){
-		if (startState != EnemyState.NONE) {
-			SetTargetPosition(newPosition);
-		}
-	}
-
-	/// <summary>
-	/// Sets the target position. Only when the enemy is in chase state
-	/// </summary>
-	/// <param name="newPosition">New position.</param>
-	public void SetTargetPosition(Vector3 newPosition){
-		targetPosition = newPosition;
-		if (currentState != EnemyState.ATTACK ) {
-			SetState (EnemyState.CHASE);
-		}
-	}
+		
 
 	/// <summary>
 	/// Damage this enemy, destroy if hp is =0, damage are sent by player if he registered damage
 	/// </summary>
 	/// <param name="new damage value"> new damage. </param>
 	public void DamageEnemy(int damage){
-		
+
 		enemyHp -= damage;	//register incoming damage
 
-		if (enemyHp <= 0) {	//check if hp reached zero and destroy object, if not, just continue game
+		if (enemyHp <= 0) {	
 			MynavMeshAgent.isStopped=true;	//stop enemy movemnt
-			EnemyAnimator.SetBool ("Dead", true);	//trigger dead animation
-			EnemyAnimator.transform.parent = null;	//stop animation
+			MynavMeshAgent.velocity = Vector3.zero;
+			//			EnemyAnimator.SetBool ("Dead", true);	//trigger dead animation
+			//			EnemyAnimator.transform.parent = null;	//stop animation
 			Destroy (gameObject);	//destroy object
 		}
 	}
+		
+//	void Damage(){
+//
+//		RaycastHit[] hits=Physics.SphereCastAll (AttackPivot.position,Hades_weaponRange, AttackPivot.forward);
+//		foreach(RaycastHit hit in hits)
+//			if (hit.collider!=null && hit.collider.tag == "Player")
+//				hit.collider.GetComponent<PlayerMovement>().DamagePlayer(20);
+//	}
 
-	/// <summary>
-	/// Randoms the rotate. Make enemy rotate in random direction in CHASE state
-	/// </summary>
-	void RandomRotate(){
-		float randomAngle =Random.Range (45, 180);
-		transform.Rotate (0, randomAngle, 0);
-	}
 
 }
