@@ -315,8 +315,7 @@ public class OLight : MonoBehaviour {
 
 				float damage = DamagePerSecond * Time.deltaTime * decay;
 
-				//FIXME: Uncomment when DamageEnemy will take a float
-				//enemy.DamageEnemy (damage);
+				enemy.GetDamaged (damage);
 			}
 		}
 	}

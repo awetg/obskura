@@ -36,6 +36,7 @@ public static class Geometry {
 		foreach (GameObject go in gos)
 		{
 			Mesh goMesh = go.GetComponent<MeshFilter>().sharedMesh;
+
 			int[] tris = goMesh.triangles;
 
 			var uniqueTris = tris.Distinct ().ToArray();

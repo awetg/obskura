@@ -38,8 +38,16 @@ public class Enemy : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		updateState ();	//call the update method of every state, depending on the current state (Continue whatever your are doing all the time)
+		if (enemyHp <= 0.0f) {	
+			MynavMeshAgent.isStopped=true;	//stop enemy movemnt
+			MynavMeshAgent.velocity = Vector3.zero;
+			EnemyAnimator.Play("Dead");	//trigger dead animation
+			EnemyAnimator.transform.parent = null;	//stop animation
+			Destroy (gameObject);	//destroy object
+		}
 
+		updateState ();	//call the update method of every state, depending on the current state (Continue whatever your are doing all the time)
+		FaceForward();
 		//////////////////////ROTATION
 //		transform.rotation = Quaternion.Euler(0,180 , transform.eulerAngles.z);	//lock rotation in x and z , so that sprite can be seen, sprite is inside a capsule
 		transform.eulerAngles = new Vector3(0,0,transform.eulerAngles.z);
@@ -48,25 +56,23 @@ public class Enemy : MonoBehaviour {
 
 	/// IDLE:  follow designeted path until player detection ///
 	float minDistance;
-	bool exist=true;
+	bool targetExist=true;
 	Quaternion r;
 
 	void StartPath(){	
 		MynavMeshAgent.speed = 1.0f;
 		MynavMeshAgent.isStopped = false;
 		MynavMeshAgent.SetDestination (startNode.GetPosition ());
-		Direction ();
 	}
 
 	void ContinuePath(){
 		
-		if(exist)
-		Playersight ();
+		if(targetExist)
+			Playersight ();
 		
 		if (Vector3.Distance (transform.position, MynavMeshAgent.destination) < 0.1f) {
-			startNode = startNode.nextNode;
+			startNode = startNode.nextNode; Debug.Log ("StartNode set to " + startNode.name);
 			MynavMeshAgent.SetDestination (startNode.GetPosition ());
-			Direction ();
 		}
 	}
 
@@ -83,7 +89,6 @@ public class Enemy : MonoBehaviour {
 	void StartChase(){	
 		MynavMeshAgent.speed = 1.5f;	//increase speed
 		MynavMeshAgent.isStopped=false;	//resume Movement with icreased speed
-		Direction();
 		EnemyAnimator.SetFloat("Run",1.2f);
 		timer = 0.0f;
 	}
@@ -97,7 +102,6 @@ public class Enemy : MonoBehaviour {
 				SetState (EnemyState.ATTACK);
 			else {
 				MynavMeshAgent.SetDestination (target.position);
-				Direction ();
 			}
 
 		} 
@@ -106,8 +110,9 @@ public class Enemy : MonoBehaviour {
 			Vector3 backToNode = startNode.transform.position;
 			MynavMeshAgent.SetDestination (backToNode);
 			EnemyAnimator.SetFloat ("Run", 0.0f);
-			SetState (EnemyState.IDLE);
-		}
+			SetState (EnemyState.IDLE);			
+			FaceForward ();
+			}
 	}
 
 
@@ -124,7 +129,6 @@ public class Enemy : MonoBehaviour {
 	void StartAttack(){
 		MynavMeshAgent.isStopped=true;	//stop enemy movement to do attack
 		MynavMeshAgent.velocity = Vector3.zero;
-		Direction ();
 		EnemyAnimator.SetBool ("Attack", true);
 		target.GetComponent<PlayerMovement> ().DamagePlayer (damage);
 		attackTime = 2.0f;
@@ -135,14 +139,14 @@ public class Enemy : MonoBehaviour {
 		if (attackTime >= 0.0f && target) {
 			if (Vector3.Distance (target.position, transform.position) <= Hades_weaponRange) {
 				target.GetComponent<PlayerMovement> ().DamagePlayer (damage);
-
+				FacePlayer ();
 			} 
 		}
 		else {
 			EnemyAnimator.SetBool ("Attack", false);
 			SetState (EnemyState.CHASE);
 		}	
-}
+	}
 
 
 	void EndAttack(){
@@ -184,53 +188,43 @@ public class Enemy : MonoBehaviour {
 		}
 	}
 		
-	public void DamageEnemy(float damage){
-
+	public void GetDamaged(float damage){
 		enemyHp -= damage;	//register incoming damage
+	}
 
-		if (enemyHp <= 0.0f) {	
-			MynavMeshAgent.isStopped=true;	//stop enemy movemnt
-			MynavMeshAgent.velocity = Vector3.zero;
-			EnemyAnimator.Play("Dead");	//trigger dead animation
-			EnemyAnimator.transform.parent = null;	//stop animation
-			Destroy (gameObject);	//destroy object
-		}
+	public void GetDamagedWithLight(float damage){
+		enemyHp -= damage;	//register incoming damage
+	}
+
+	public void SetOnFire() {
+		//FIXME: Implement in the future
 	}
 
 	void Playersight(){
 		if (target) {
 			minDistance = Vector3.Distance (target.position, transform.position);
-
 			if (Geometry.IsInLineOfSight (target.position, transform.position) && minDistance < 10.0f) {
 				SetState (EnemyState.CHASE);
 			}
 		} else
-			exist = false;
+			targetExist = false;
 	}
 
+	void FacePlayer(){
+		Vector3 dir;
+		float angle;
+		dir = target.position-transform.position;
+		angle = Mathf.Atan2 (dir.y, dir.x) * Mathf.Rad2Deg;
+		transform.eulerAngles= new Vector3(0, 0, angle);
+	}
 
-	Vector3 dir;
-	Vector3 diff;
-	float angle;
-	void Direction(){
-		if (currentState == EnemyState.IDLE) {
-			dir = startNode.GetPosition () - transform.position;
+	void FaceForward(){
+		Vector3 dir;
+		float angle;
+		dir = MynavMeshAgent.velocity;
+		if (dir.magnitude != 0) {
 			angle = Mathf.Atan2 (dir.y, dir.x) * Mathf.Rad2Deg;
-			Debug.Log (angle);
-//			if (angle<45.0f) {
-//				Debug.Log ("angle 0");
-//				transform.rotation = Quaternion.Euler (0, 0, -90);
 			transform.eulerAngles = new Vector3 (0, 0, angle);
-//		} else
-//			transform.rotation = Quaternion.Euler(0,0,angle);
-			//			transform.rotation = Quaternion.AngleAxis (angle, Vector3.forward);
-			
-		} else if (target) {
-			dir = target.position-transform.position;
-			angle = Mathf.Atan2 (dir.y, dir.x) * Mathf.Rad2Deg;
-//			transform.rotation = Quaternion.Euler(0,0,angle);
-			//			transform.rotation = Quaternion.AngleAxis (angle, Vector3.forward);
-		transform.eulerAngles= new Vector3(0,0,angle);
 		}
 	
 	}
