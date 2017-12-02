@@ -192,7 +192,7 @@ public class Enemy : MonoBehaviour {
 		enemyHp -= damage;	//register incoming damage
 	}
 
-	public void GetDamagedWithLight(float damage){
+	public void GetDamagedByLight(float damage){
 		enemyHp -= damage;	//register incoming damage
 	}
 
