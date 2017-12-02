@@ -11,7 +11,7 @@ public enum EnemyState{IDLE,CHASE,ATTACK,NONE}	//describes what state the enemy 
 
 public class Enemy : MonoBehaviour {
 	
-	int enemyHp;
+	float enemyHp;
 	public float chaseTime;	//how long enemy chase player after detection
 	public Animator EnemyAnimator;	//for enemy animation
 	public NavMeshAgent MynavMeshAgent;
@@ -39,23 +39,34 @@ public class Enemy : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		updateState ();	//call the update method of every state, depending on the current state (Continue whatever your are doing all the time)
-		transform.rotation = Quaternion.Euler(0,180 , 0);	//lock rotation in x and z , so that sprite can be seen, sprite is inside a capsule
-//		MynavMeshAgent.updateRotation=false;
-		
+
+		//////////////////////ROTATION
+//		transform.rotation = Quaternion.Euler(0,180 , transform.eulerAngles.z);	//lock rotation in x and z , so that sprite can be seen, sprite is inside a capsule
+		transform.eulerAngles = new Vector3(0,0,transform.eulerAngles.z);
+		MynavMeshAgent.updateRotation = false;
 	}
 
 	/// IDLE:  follow designeted path until player detection ///
-
+	float minDistance;
+	bool exist=true;
+	Quaternion r;
 
 	void StartPath(){	
 		MynavMeshAgent.speed = 1.0f;
+		MynavMeshAgent.isStopped = false;
 		MynavMeshAgent.SetDestination (startNode.GetPosition ());
+		Direction ();
 	}
 
-	void ContinuePath(){	
-		if (Vector3.Distance (transform.position, MynavMeshAgent.destination)<0.2) {
+	void ContinuePath(){
+		
+		if(exist)
+		Playersight ();
+		
+		if (Vector3.Distance (transform.position, MynavMeshAgent.destination) < 0.1f) {
 			startNode = startNode.nextNode;
 			MynavMeshAgent.SetDestination (startNode.GetPosition ());
+			Direction ();
 		}
 	}
 
@@ -68,24 +79,33 @@ public class Enemy : MonoBehaviour {
 
 	public float timer;	//public for debug
 
+
 	void StartChase(){	
-		MynavMeshAgent.speed = 1.2f;	//increase speed
+		MynavMeshAgent.speed = 1.5f;	//increase speed
 		MynavMeshAgent.isStopped=false;	//resume Movement with icreased speed
+		Direction();
+		EnemyAnimator.SetFloat("Run",1.2f);
 		timer = 0.0f;
 	}
 
 	void ContinueChase(){	
 		timer += Time.deltaTime;
-		if (target && timer<chaseTime) {
+
+		if (timer<chaseTime && target) {
 
 			if (Vector3.Distance (target.position, transform.position) < Hades_weaponRange)
 				SetState (EnemyState.ATTACK);
-			else
+			else {
 				MynavMeshAgent.SetDestination (target.position);
+				Direction ();
+			}
 
-		} else {
+		} 
+
+		else {
 			Vector3 backToNode = startNode.transform.position;
 			MynavMeshAgent.SetDestination (backToNode);
+			EnemyAnimator.SetFloat ("Run", 0.0f);
 			SetState (EnemyState.IDLE);
 		}
 	}
@@ -98,31 +118,34 @@ public class Enemy : MonoBehaviour {
 
 	/// ATTACK ///
 
-	float attackTime;
+	public float attackTime;
+	int damage = 2;
 
 	void StartAttack(){
 		MynavMeshAgent.isStopped=true;	//stop enemy movement to do attack
 		MynavMeshAgent.velocity = Vector3.zero;
-		//		EnemyAnimator.SetBool ("Attack", true);
-		target.GetComponent<PlayerMovement> ().DamagePlayer (2);
+		Direction ();
+		EnemyAnimator.SetBool ("Attack", true);
+		target.GetComponent<PlayerMovement> ().DamagePlayer (damage);
 		attackTime = 2.0f;
 	}
 
 	void ContinueAttack(){
 		attackTime -= Time.deltaTime;
-		if(attackTime > 0){
+		if (attackTime >= 0.0f && target) {
+			if (Vector3.Distance (target.position, transform.position) <= Hades_weaponRange) {
+				target.GetComponent<PlayerMovement> ().DamagePlayer (damage);
 
-			if (Vector3.Distance (target.position, transform.position) < Hades_weaponRange)
-				target.GetComponent<PlayerMovement> ().DamagePlayer (2);
-			else
-				EndAttack ();
-			SetState (EnemyState.CHASE);
+			} 
 		}
-	}
+		else {
+			EnemyAnimator.SetBool ("Attack", false);
+			SetState (EnemyState.CHASE);
+		}	
+}
 
 
 	void EndAttack(){
-		//		EnemyAnimator.SetBool ("Attack", false);
 	}
 
 	/// ATTACK : END ///
@@ -161,22 +184,55 @@ public class Enemy : MonoBehaviour {
 		}
 	}
 		
-
-	/// <summary>
-	/// Damage this enemy, destroy if hp is =0, damage are sent by player if he registered damage
-	/// </summary>
-	/// <param name="new damage value"> new damage. </param>
-	public void DamageEnemy(int damage){
+	public void DamageEnemy(float damage){
 
 		enemyHp -= damage;	//register incoming damage
 
-		if (enemyHp <= 0) {	
+		if (enemyHp <= 0.0f) {	
 			MynavMeshAgent.isStopped=true;	//stop enemy movemnt
 			MynavMeshAgent.velocity = Vector3.zero;
-			//			EnemyAnimator.SetBool ("Dead", true);	//trigger dead animation
-			//			EnemyAnimator.transform.parent = null;	//stop animation
+			EnemyAnimator.Play("Dead");	//trigger dead animation
+			EnemyAnimator.transform.parent = null;	//stop animation
 			Destroy (gameObject);	//destroy object
 		}
+	}
+
+	void Playersight(){
+		if (target) {
+			minDistance = Vector3.Distance (target.position, transform.position);
+
+			if (Geometry.IsInLineOfSight (target.position, transform.position) && minDistance < 10.0f) {
+				SetState (EnemyState.CHASE);
+			}
+		} else
+			exist = false;
+	}
+
+
+	Vector3 dir;
+	Vector3 diff;
+	float angle;
+	void Direction(){
+		if (currentState == EnemyState.IDLE) {
+			dir = startNode.GetPosition () - transform.position;
+			angle = Mathf.Atan2 (dir.y, dir.x) * Mathf.Rad2Deg;
+			Debug.Log (angle);
+//			if (angle<45.0f) {
+//				Debug.Log ("angle 0");
+//				transform.rotation = Quaternion.Euler (0, 0, -90);
+			transform.eulerAngles = new Vector3 (0, 0, angle);
+//		} else
+//			transform.rotation = Quaternion.Euler(0,0,angle);
+			//			transform.rotation = Quaternion.AngleAxis (angle, Vector3.forward);
+			
+		} else if (target) {
+			dir = target.position-transform.position;
+			angle = Mathf.Atan2 (dir.y, dir.x) * Mathf.Rad2Deg;
+//			transform.rotation = Quaternion.Euler(0,0,angle);
+			//			transform.rotation = Quaternion.AngleAxis (angle, Vector3.forward);
+		transform.eulerAngles= new Vector3(0,0,angle);
+		}
+	
 	}
 		
 //	void Damage(){
