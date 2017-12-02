@@ -32,12 +32,22 @@ public class OLight : MonoBehaviour {
 	bool computed = false;
 	//bool debugFlag = false;
 
+	const float defaultIntensity = 1.0F;
+	const string damageTag = "Enemy";
+
 	//Exposing parameters to the inspector
 	public Vector2 Position;
 	public float ConeAngle = 6.30F;
 	public float Direction = 3.14F;
 	public bool Mouse = false;
 	public bool Static = false;
+	public Color LightColor = new Color(1.0F, 1.0F, 1.0F);
+	public float Intensity = defaultIntensity;
+	public float DimmingDistance = 1.0F;
+	public float DamagePerSecond = defaultIntensity * 10F;
+	public bool IsStrong = false;
+	public float FireProbabilityPerSecond = 0F;
+
 	//public Color Color = new Color(1.0F, 1.0F, 1.0F);
 
 	//Initialize the mesh and the vertices
@@ -50,6 +60,7 @@ public class OLight : MonoBehaviour {
 	/// <summary>
 	/// Refreshs the light mesh (for static lights).
 	/// Call when the shadown casting objects in the map move or change.
+	/// This method is called in OLight.Update for dynamic lights.
 	/// </summary>
 	public void RefreshLight(){
 
@@ -284,7 +295,31 @@ public class OLight : MonoBehaviour {
 	}
 
 
+	void InflictDamages(){
+		
+		var objs = Tags.GameObjectsWithTag (damageTag);
 
+		foreach (GameObject obj in objs) {
+			Enemy enemy = obj.GetComponent<Enemy>();
+
+			if (enemy != null && enemy.transform != null) {
+				Vector2 enemyPos = new Vector2 (enemy.transform.position.x, enemy.transform.position.y);;
+				Vector2 lightPos = new Vector2 (transform.position.x, transform.position.y);
+				Vector2 diff = enemyPos - lightPos;
+				float dist = diff.magnitude;
+				float decay = 1F;
+
+				if (dist > DimmingDistance) {
+					decay = 1F / dist;
+				}
+
+				float damage = DamagePerSecond * Time.deltaTime * decay;
+
+				//FIXME: Uncomment when DamageEnemy will take a float
+				//enemy.DamageEnemy (damage);
+			}
+		}
+	}
 
 
 	/*

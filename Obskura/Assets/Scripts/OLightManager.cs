@@ -28,6 +28,9 @@ public class OLightManager : MonoBehaviour {
 		UICamera.orthographicSize = MainCamera.orthographicSize;
 		UICamera.aspect = MainCamera.aspect;
 
+	}
+
+	void Start() {
 		RefreshVertices ();
 	}
 

@@ -28,7 +28,8 @@ public static class Geometry {
 		vertices.Clear (); 
 
 		// Collect all the game objects that are supposed to react to light
-		var gos = tags.SelectMany(tag => GameObject.FindGameObjectsWithTag(tag));
+		//var gos = tags.SelectMany(tag => GameObject.FindGameObjectsWithTag(tag));
+		var gos = tags.SelectMany(tag => Tags.GameObjectsWithTag(tag));
 		//GameObject[] gos = GameObject.FindGameObjectsWithTag("Wall");
 
 		// Get all the vertices
