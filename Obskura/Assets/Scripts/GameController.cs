@@ -8,8 +8,8 @@ public class GameController : MonoBehaviour {
 	public Text HpText;	//to show hp number int hp will be converted it will start 100 by default
 	int hp=100;	//hp number //Probably better to move it in Player
 	public GameObject restart,torch,gun,endOfGame;	//GameObjects or items to be manipulated while play
-	public bool gameOver=false; //if true restart GameObject will be active
-	public bool labClose=false;	//if true acitvate endOfGame GameObject
+	private bool gameOver=false; //if true restart GameObject will be active
+	private bool labClose=false;	//if true acitvate endOfGame GameObject
 
 	public OLightManager lightManager; // See OLightManager.cs
 	private PlayerMovement player;	// to access public methods of player

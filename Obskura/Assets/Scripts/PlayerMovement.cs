@@ -37,7 +37,7 @@ public class PlayerMovement : MonoBehaviour {
 		rotate = Quaternion.LookRotation(transform.position - mouthPosition, Vector3.forward);	//used to represent rotation
         transform.rotation = rotate;	// player rotate to "rotate" value
 
-		transform.eulerAngles = new Vector3(0,0,transform.eulerAngles.z);	//used to prevent rotation on z-axis
+		transform.eulerAngles = new Vector3(0,0,transform.eulerAngles.z);	//used to prevent rotation on z-axis when mouse out side of play screen
 
 		//////// PLAYER WALK ///////
 		if (Input.GetMouseButtonDown(0) && !moving) 	//if mouse is clicked Move player
@@ -50,8 +50,8 @@ public class PlayerMovement : MonoBehaviour {
 		////// TRY ATTACK IF THER IS WEAPON ///////
 //		if (PlayerWeaponType.GUN) {
 //			
-//			if (Input.GetKeyDown (KeyCode.Space))	//if spacebar clicked fire => Attack
-//			Attack();
+//			if (Input.GetKeyDown (KeyCode.Space))	//if spacebar clicked 
+//			Fier();
 //		}
     }
 
@@ -90,11 +90,6 @@ public class PlayerMovement : MonoBehaviour {
     }
 
 
-	/// WHOLE SETWEAPON CAN BE MOVED TO GAMECONROLLER
-	/// <summary>
-	/// Sets the weapon.
-	/// </summary>
-	/// <param name="New_Weapon">New weapon.</param>
 	public void SetWeapon(PlayerWeaponType New_Weapon){
 		if (New_Weapon != currentWeapon) {	//do only if new_weapon is different from currentWeapon
 			currentWeapon = New_Weapon;
@@ -122,9 +117,11 @@ public class PlayerMovement : MonoBehaviour {
 //			PlayerAnimator.SetBool ("Dead", true);	//start dead animation
 //			PlayerAnimator.transform.parent = null;
 			this.enabled = false;
+			gameObject.GetComponent<BoxCollider2D> ().enabled = false;
 			CancelInvoke ();
 			Destroy (gameObject);
-		}
+
+		}	
 	}
 
 	public bool IsAlive(){
@@ -139,16 +136,4 @@ public class PlayerMovement : MonoBehaviour {
 //		return currentWeapon;
 //	}
 
-	/// <summary>
-	/// Alerts the enemies when player is close.
-	/// </summary>
-//	void AlertEnemies(){
-//		RaycastHit[] hits=Physics.SphereCastAll (LightPivot.position,10.0f, LightPivot.up);	// LightPivot would be other pivot as well or player position
-//		foreach (RaycastHit hit in hits) {
-//			if (hit.collider != null && hit.collider.tag == "Enemy") {
-//				hit.collider.GetComponent<Enemy>().SetAlertPosition(transform.position);
-//			}
-//		}
-//	}
-//
 }
