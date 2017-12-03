@@ -11,7 +11,7 @@ public enum EnemyState{IDLE,CHASE,ATTACK,NONE}	//describes what state the enemy 
 
 public class Enemy : MonoBehaviour {
 	
-	float enemyHp;
+	float enemyHp = 100f;
 	public float chaseTime;	//how long enemy chase player after detection
 	public Animator EnemyAnimator;	//for enemy animation
 	public NavMeshAgent MynavMeshAgent;
