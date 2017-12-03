@@ -11,7 +11,7 @@ public enum EnemyState{IDLE,CHASE,ATTACK,NONE}	//describes what state the enemy 
 
 public class Enemy : MonoBehaviour {
 	
-	float enemyHp;
+	float enemyHp=100.0f;
 	public float chaseTime;	//how long enemy chase player after detection
 	public Animator EnemyAnimator;	//for enemy animation
 	public NavMeshAgent MynavMeshAgent;
@@ -191,8 +191,8 @@ public class Enemy : MonoBehaviour {
 		if (enemyHp <= 0.0f) {	
 			MynavMeshAgent.isStopped=true;	//stop enemy movemnt
 			MynavMeshAgent.velocity = Vector3.zero;
-			EnemyAnimator.Play("Dead");	//trigger dead animation
-			EnemyAnimator.transform.parent = null;	//stop animation
+			EnemyAnimator.Play("HadesDeath", -1,5.0f);	//trigger dead animation
+//			EnemyAnimator.transform.parent = null;	//stop animation
 			Destroy (gameObject);	//destroy object
 		}
 	}
@@ -216,10 +216,6 @@ public class Enemy : MonoBehaviour {
 		if (currentState == EnemyState.IDLE) {
 			dir = startNode.GetPosition () - transform.position;
 			angle = Mathf.Atan2 (dir.y, dir.x) * Mathf.Rad2Deg;
-			Debug.Log (angle);
-//			if (angle<45.0f) {
-//				Debug.Log ("angle 0");
-//				transform.rotation = Quaternion.Euler (0, 0, -90);
 			transform.eulerAngles = new Vector3 (0, 0, angle);
 //		} else
 //			transform.rotation = Quaternion.Euler(0,0,angle);
