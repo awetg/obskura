@@ -28,6 +28,7 @@ public class PlayerMovement : MonoBehaviour {
 		MyRigidbody = GetComponent<Rigidbody2D>();
 		PlayerAnimator = GetComponent<Animator> ();
 		PlayerAnimator.SetBool("move", false);
+//		Screen.lockCursor = true;
 
     }
 
@@ -131,6 +132,7 @@ public class PlayerMovement : MonoBehaviour {
 	public float GetHP(){
 		return hp;
 	}
+
 
 //	public PlayerWeaponType GetCurrentWeapon(){	// NOTE: no need to get weapon type now,bcs gamecontroller set weaapon type
 //		return currentWeapon;

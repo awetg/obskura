@@ -11,7 +11,7 @@ public enum EnemyState{IDLE,CHASE,ATTACK,NONE}	//describes what state the enemy 
 
 public class Enemy : MonoBehaviour {
 	
-	float enemyHp = 100f;
+	float enemyHp = 100.0f;
 	public float chaseTime;	//how long enemy chase player after detection
 	public Animator EnemyAnimator;	//for enemy animation
 	public NavMeshAgent MynavMeshAgent;
@@ -42,7 +42,7 @@ public class Enemy : MonoBehaviour {
 			MynavMeshAgent.isStopped=true;	//stop enemy movemnt
 			MynavMeshAgent.velocity = Vector3.zero;
 			EnemyAnimator.Play("Dead");	//trigger dead animation
-			EnemyAnimator.transform.parent = null;	//stop animation
+			//EnemyAnimator.transform.parent = null;	//stop animation
 			Destroy (gameObject);	//destroy object
 		}
 
@@ -196,6 +196,7 @@ public class Enemy : MonoBehaviour {
 		enemyHp -= damage;	//register incoming damage
 	}
 
+
 	public void SetOnFire() {
 		//FIXME: Implement in the future
 	}
@@ -228,7 +229,6 @@ public class Enemy : MonoBehaviour {
 		}
 	
 	}
-		
 //	void Damage(){
 //
 //		RaycastHit[] hits=Physics.SphereCastAll (AttackPivot.position,Hades_weaponRange, AttackPivot.forward);
