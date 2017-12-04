@@ -54,3 +54,5 @@
 /Users/phyllislai/obskura/Obskura/Temp/bin/Debug/Unity.CecilTools.dll
 /Users/phyllislai/obskura/Obskura/Temp/bin/Debug/Unity.Cecil.Pdb.dll
 /Users/phyllislai/obskura/Obskura/Temp/bin/Debug/Unity.Cecil.Mdb.dll
+/home/manuel/games_project/obskura/Obskura/Temp/bin/Debug/Assembly-CSharp.dll.mdb
+/home/manuel/games_project/obskura/Obskura/obj/Debug/Assembly-CSharp.dll.mdb

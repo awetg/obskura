@@ -16,6 +16,13 @@ public class PlayerMovement : MonoBehaviour {
 	public float StopDistance;		//How far player have to stop before reaching mouse position, small value is needed here
 	private bool moving = false;	//used to stop player/or stop calling Move() method, when stopDistance is reached
 	PlayerWeaponType currentWeapon=PlayerWeaponType.TORCH;	//player will not have weapon until he get the torch
+	private float resetCameraAt = 0;
+	private float resetCameraAfter = 3;
+	private float cameraDamage = 0;
+
+	public OLaser PlayerLaser;
+
+	public OLight TorchLight;
 
 //	public GameObject bulletPrefab;	//Bullets to be fired from gunPivot or is laser just drag laser prefab in INSPERCTOR-unity
 //	public Transform LightPivot,gunPivot;	//gunPivot to fire light, bullets or laser and hitPivot to check if damage can be done
@@ -30,23 +37,47 @@ public class PlayerMovement : MonoBehaviour {
 		PlayerAnimator.SetBool("move", false);
 //		Screen.lockCursor = true;
 
+		if (TorchLight != null)
+			TorchLight.ConeAngle = 10f;
     }
 
     void FixedUpdate()
     {	///////// PLAYER LOOK AT MOUSE ///////////
-		var mouthPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);	//used to get mouse position to rotate player towards mouse
-		rotate = Quaternion.LookRotation(transform.position - mouthPosition, Vector3.forward);	//used to represent rotation
+		var mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);	//used to get mouse position to rotate player towards mouse
+		rotate = Quaternion.LookRotation(transform.position - mousePosition, Vector3.forward);	//used to represent rotation
         transform.rotation = rotate;	// player rotate to "rotate" value
+		if (TorchLight != null) {
+			TorchLight.Position = new Vector2 (transform.position.x, transform.position.y + 0.3f);
+			TorchLight.Direction = (transform.eulerAngles.z + 90) * Mathf.Deg2Rad;
+		}
 
 		transform.eulerAngles = new Vector3(0,0,transform.eulerAngles.z);	//used to prevent rotation on z-axis when mouse out side of play screen
 
 		//////// PLAYER WALK ///////
-		if (Input.GetMouseButtonDown(0) && !moving) 	//if mouse is clicked Move player
+		if (Input.GetMouseButtonDown(1) && !moving) 	//if mouse is clicked Move player
         {
             moving = true;
             InvokeRepeating("Move", 0, Seconds);	//how long to wait before updating
             PlayerAnimator.SetBool("move", true);	//start walk animation,, bcs player is moving
         }
+
+		if (Input.GetMouseButtonDown(0)) 	//if mouse is clicked Move player
+		{
+			PlayerLaser.Fire (mousePosition);
+		}
+			
+		if (resetCameraAt > Time.time) {
+			float proportion = (resetCameraAt - Time.time) / resetCameraAfter;
+
+			var camera = GameObject.FindGameObjectWithTag ("MainCamera");
+
+			if (camera != null) {
+				var lightManager = camera.GetComponent<OLightManager> ();
+				lightManager.Overlay = new Color (proportion * cameraDamage, 0, 0);
+			}
+		} else if (resetCameraAt < Time.time) {
+			cameraDamage = 0;
+		}
 			
 		////// TRY ATTACK IF THER IS WEAPON ///////
 //		if (PlayerWeaponType.GUN) {
@@ -87,6 +118,11 @@ public class PlayerMovement : MonoBehaviour {
 
             MyRigidbody.transform.position = playerPosition + whereToMove * speed; //move player to new positon using unit vector WhereToMove
 
+			var camera = GameObject.FindGameObjectWithTag ("MainCamera");
+
+			if (camera != null) {
+				camera.transform.position = new Vector3(transform.position.x, transform.position.y,camera.transform.position.z);
+			}
         }
     }
 
@@ -108,11 +144,20 @@ public class PlayerMovement : MonoBehaviour {
 		//GameController.SelectWeapon (New_Weapon);	//select the weapon on screen
 	}
 
-	public void DamagePlayer(int coming_hp){
+	public void DamagePlayer(float coming_hp){
 		
 		hp =hp - coming_hp;
 		//NOTE: The controller should command to write the player's hp to screen
 		//GameController.ShowDamage (hp);	//send hp to screen, only player hp get displayed
+
+		var camera = GameObject.FindGameObjectWithTag ("MainCamera");
+
+		if (camera != null) {
+			var lightManager = camera.GetComponent<OLightManager> ();
+			lightManager.Overlay =  new Color(coming_hp, 0, 0);
+			cameraDamage = coming_hp;
+			resetCameraAt = Time.time + resetCameraAfter;
+		}
 
 		if (hp <= 0) {
 //			PlayerAnimator.SetBool ("Dead", true);	//start dead animation

@@ -179,7 +179,7 @@ public static class Geometry {
 	public static bool IsInLineOfSight(Vector2 a, Vector2 b){
 		return IsInLineOfSight (new Vector3 (a.x, a.y, 0), new Vector3 (b.x, b.y, 0));
 	}
-
+		
 	/// <summary>
 	/// Determines if there is a direct line of sight between two points.
 	/// </summary>
@@ -194,6 +194,8 @@ public static class Geometry {
 			return intersect.v == null || intersect.param > 1.0;}
 		);
 	}
+
+
 
 	/// <summary>
 	/// Check if a polygon contains the point.
@@ -215,7 +217,63 @@ public static class Geometry {
 		else
 			return false;
 	}
+		
+	public static List<ICollidableActor2D> GetActorsIntersectingRayWithTags(Vector2 a, Vector2 b, List<string> tags, bool stopAtWalls = true){
+		Ray2D ray = new Ray2D (a, b);
+		var gos = Tags.GameObjectsWithTags (tags).Where(g => g.GetComponent<ICollidableActor2D>() != null)
+			.Select(g => g.GetComponent<ICollidableActor2D>()).Cast<ICollidableActor2D>();
 
+		if (stopAtWalls) {
+			var allIntersct = 
+				segments.Select (s => Geometry.GetIntersection (ray, s)).Where (x => x.v != null);
+
+			if (allIntersct.Count () > 0) {
+				// Find the nearest intersection
+				Intersection nearestIntersection = allIntersct.Min();
+
+				ray.b = new Vector2(nearestIntersection.v.Value.x, nearestIntersection.v.Value.y);
+			}
+
+		}
+
+		float dist = (ray.a - ray.b).magnitude;
+
+		return gos.Where (g => {
+			Vector2 pos = g.GetPosition();
+			float size = g.GetSize() / 2;
+			float actorDist = (ray.a - pos).magnitude;
+			bool isBehindWall = stopAtWalls && actorDist > dist; 
+			List<Vector3> vertices = new List<Vector3>();
+			vertices.Add(new Vector3(pos.x + size, pos.y + size, 0));
+			vertices.Add(new Vector3(pos.x + size, pos.y - size, 0));
+			vertices.Add(new Vector3(pos.x - size, pos.y - size, 0));
+			vertices.Add(new Vector3(pos.x - size, pos.y + size, 0));
+			return (!isBehindWall) && RayIntersectsWithAny(ray, GetSegmentsFromClockwiseVertices(vertices));
+		}).ToList();
+
+	}
+
+	public static List<Segment2D> GetSegmentsFromClockwiseVertices(List<Vector3> verts){
+		List<Segment2D> res = new List<Segment2D> ();
+		for (int i=0;i < verts.Count;i++)
+		{
+			// Segment start
+			Vector3 wPos1 = verts[i];
+
+			// Segment end
+			Vector3 wPos2 = verts[(i+1) % verts.Count];
+
+			Segment2D seg = new Segment2D();
+			seg.a = new Vector2(wPos1.x,wPos1.y);
+			seg.b = new Vector2(wPos2.x, wPos2.y);
+			res.Add(seg);
+		}
+		return res;
+	}
+
+	public static bool RayIntersectsWithAny(Ray2D ray, List<Segment2D> segments){
+		return segments.Exists (s => GetIntersection (ray, s).v != null);
+	}
 
 	// Find intersection of ray and segment
 	// http://ncase.me/sight-and-light/

@@ -44,8 +44,9 @@ public class OLight : MonoBehaviour {
 	public Color LightColor = new Color(1.0F, 1.0F, 1.0F);
 	public float Intensity = defaultIntensity;
 	public float DimmingDistance = 1.0F;
-	public float DamagePerSecond = defaultIntensity * 10F;
+	public float DamagePerSecond = defaultIntensity * 100F;
 	public bool IsStrong = false;
+	public bool IsOn = true;
 	public float FireProbabilityPerSecond = 0F;
 
 	//public Color Color = new Color(1.0F, 1.0F, 1.0F);
@@ -55,6 +56,10 @@ public class OLight : MonoBehaviour {
 	{
 		lightMesh = new Mesh();
 		meshFilter = GetComponent<MeshFilter>();
+	}
+
+	void Start() {
+		Position = transform.position;
 	}
 
 	/// <summary>
@@ -233,15 +238,33 @@ public class OLight : MonoBehaviour {
 
 	void Update () 
 	{
+		if (!IsOn) {
+			if (lightMesh != null)
+				lightMesh.Clear ();
+
+			return;
+		}
+
 		if (Static) {
 			Mouse = false;
 			if (computed)
 				return;
 		}
+			
 
 		RefreshLight ();
 
+	}
 
+	void FixedUpdate(){
+		if (!IsOn)
+			return;
+		
+		//Vector3 pos = Camera.main.ScreenToWorldPoint (new Vector3 (Input.mousePosition.x, Input.mousePosition.y, 10));
+		//PointIsInLight (pos);
+
+		
+		//InflictDamages ();
 	}
 
 	/// <summary>
@@ -273,22 +296,27 @@ public class OLight : MonoBehaviour {
 	/// <param name="polySegments">Segments of the polygon.</param>
 	/// <param name="p">Point</param>
 	bool ContainsPoint (List<Segment2D> polySegments, Vector3 p)  { 
-		//Cast a ray from thee light to the point to test
+		//var maxSegDist = (float) polySegments.Max (s => Mathf.Max (s.a.magnitude, s.b.magnitude)) * 2;
+		//var outside = new Vector3 (maxSegDist, maxSegDist + 0.01F * maxSegDist, 0);
+		//We need to displace the starting point slightly, to make it be inside even in case of conic light
+		//var direction = new Vector3(Mathf.Cos(Direction), Mathf.Sin(Direction)) * 0.1F;
+		//Cast a ray from the light to the point to test
 		Ray2D ray = new Ray2D(transform.position, p);
+		//float dist = ((transform.position) - p).magnitude;
 		//Get all the intersections between the segments if the light poligon and the casted ray
 		var allIntersct = polySegments.Select (s => Geometry.GetIntersection (ray, s));
 		// Find the number of intersections until the point (param < 1.0F)
 		var intersectCount = allIntersct.Where (x => x.v != null && x.param <= 1.0F).Count();
 
-		/*   DEBUG
+		/*
 		allIntersct.ToList().Where (x => x.v != null && x.param < 1.0F).ToList().ForEach(i =>
 			//Debug.DrawRay(i.v.Value, new Vector3(0.1F,0.1F,0.1F), (intersectCount % 2 == 0) ? Color.green : Color.red, 10000.0F, false)
-			Debug.DrawLine (new Vector3(ray.a.x, ray.a.y, -20), new Vector3(ray.b.x, ray.b.y, -20), (intersectCount % 2 == 0) ? Color.green : Color.red, duration : 10000.0F ,depthTest : false)
+			Debug.DrawLine (new Vector3(ray.a.x, ray.a.y, -20), new Vector3(ray.b.x, ray.b.y, -20), (intersectCount % 2 != 0) ? Color.green : Color.red, duration : 10000.0F ,depthTest : false)
 		);
-		Debug.Log (intersectCount);
-		*/
+		Debug.Log (intersectCount);*/
 
-		if (intersectCount % 2 == 0)
+
+		if (intersectCount % 2 != 0)
 			return true;
 		else
 			return false;
@@ -303,7 +331,11 @@ public class OLight : MonoBehaviour {
 			Enemy enemy = obj.GetComponent<Enemy>();
 
 			if (enemy != null && enemy.transform != null) {
-				Vector2 enemyPos = new Vector2 (enemy.transform.position.x, enemy.transform.position.y);;
+				Vector2 enemyPos = new Vector2 (enemy.transform.position.x, enemy.transform.position.y);
+
+				if (!PointIsInLight (enemyPos))
+					return;
+
 				Vector2 lightPos = new Vector2 (transform.position.x, transform.position.y);
 				Vector2 diff = enemyPos - lightPos;
 				float dist = diff.magnitude;
@@ -314,6 +346,8 @@ public class OLight : MonoBehaviour {
 				}
 
 				float damage = DamagePerSecond * Time.deltaTime * decay;
+
+				//Debug.Log ("Inflicted Damage " + damage + " to " + enemy.name);
 
 				enemy.GetDamaged (damage);
 			}
