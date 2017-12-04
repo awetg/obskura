@@ -34,6 +34,7 @@ public class OLight : MonoBehaviour {
 
 	const float defaultIntensity = 1.0F;
 	const string damageTag = "Enemy";
+	const float maximumDistanceFactor = 2.5F;
 
 	//Exposing parameters to the inspector
 	public Vector2 Position;
@@ -136,13 +137,49 @@ public class OLight : MonoBehaviour {
 			// Ray from light position in the direction of angle
 			Ray2D ray = new Ray2D(new Vector2(pos.x,pos.y), new Vector2(pos.x+dx,pos.y+dy));
 
-			// Get all the possible intersections between the ray and the segments
-			var allIntersct = 
-				segments.Select (s => Geometry.GetIntersection (ray, s));
+			/* Note: The profiler shows that this is really slow
+			//      I will replace it with a loop that finds the min while creating the intersections
 
+			// Get all the possible intersections between the ray and the segments
+			
+			//var allIntersct = 
+			//	segments.Select (s => Geometry.GetIntersection (ray, s));
+			
 			// Find the nearest intersection
-			Intersection nearestIntersection = 
-				allIntersct.Where (x => x.v != null).Min();
+			//Intersection nearestIntersection = 
+			
+			//	allIntersct.Where (x => x.v != null).Min();
+			
+			*/
+
+			//Find the first viable intersection
+			Intersection first;
+			first.param = null;
+			first.v = null;
+			first.angle = null;
+			bool isThereAnIntersection = false;
+			for (int i = 0; i < segments.Count; i++) {
+				Intersection tmp = Geometry.GetIntersection (ray, segments [i]);
+				if (tmp.v != null) {
+					first = tmp;
+					isThereAnIntersection = true;
+					break;
+				}
+			}
+
+			//If there is no viable intersection, continue with next angle
+			if (!isThereAnIntersection) continue;
+
+			//Find the nearest interception by computing a minimum
+			Intersection nearestIntersection = first;
+			foreach (Segment2D s in segments) {
+				Intersection tmpIntersect = Geometry.GetIntersection(ray, s);
+				if (tmpIntersect.param != null && tmpIntersect.v != null &&
+					tmpIntersect.param.Value < nearestIntersection.param.Value)
+
+					nearestIntersection = tmpIntersect;
+			}
+
 
 			/*
 			bool found = false;

@@ -11,6 +11,8 @@ public static class Geometry {
 
 	public static void CollectVertices() {
 		CollectVertices (new string[1] {"Wall"});
+		Debug.Log (segments.Count);
+		Debug.Log (vertices.Count);
 	}
 		
 	public static List<Vector3> GetVertices() {
@@ -24,7 +26,7 @@ public static class Geometry {
 	public static void CollectVertices(string[] tags)
 	{
 		//Clear the vertices list, since it might not be the first time
-		//the vertices are collected (immagine moving walls).
+		//the vertices are collected (imagine moving walls).
 		vertices.Clear (); 
 
 		// Collect all the game objects that are supposed to react to light
@@ -348,6 +350,7 @@ public struct Intersection : System.IComparable<Intersection>
 	public int CompareTo(Intersection that) {
 		return this.param.Value.CompareTo(that.param.Value);
 	}
+
 }
 
 public struct PseudoAngleLocationTuple : System.IComparable<PseudoAngleLocationTuple>
