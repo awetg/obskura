@@ -47,8 +47,9 @@
 
     half4 frag(vertOutput output) : COLOR {
     	float dist = distance(_Origin.xy, output.wpos.xy);
-    	float ndist = (dist*dist/(_Dist*_Dist));
+    	float ndist = (dist*dist*dist*dist*dist/(_Dist*_Dist*_Dist*_Dist*_Dist));
     	if (dist < _Dist) return output.color * _Intensity * ((-0.8F)*ndist + 1.8F);
+    	if (dist > _Dist * 2) return output.color * 0;
         else return output.color * _Intensity / (ndist); 
     }
     ENDCG

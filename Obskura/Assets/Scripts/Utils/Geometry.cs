@@ -5,9 +5,18 @@ using UnityEngine;
 
 public static class Geometry {
 
+	//To calculate a point outside the wall
+	const float margin = 1;
+	const float verticesResolution = 0.01f;
+
 	static List<Segment2D> segments = new List<Segment2D>(); //Segments of the walls or light blocking objects
+	static List<Segment2D> enrichedSegments = new List<Segment2D>(); //Segments of the walls or light blocking objects
+	static List<Segment2D> dynSegments = new List<Segment2D>();
 	static List<Vector3> vertices = new List<Vector3>(); //Vertices of the walls or light blocking objects
+	static List<Vector3> enrichedVertices = new List<Vector3>(); 
+	static List<Vector3> dynVertices = new List<Vector3>(); 
 	static List<Polygon2D> walls = new List<Polygon2D>(); //Walls as polygon (for collision checking)
+	static List<Polygon2D> dynWalls = new List<Polygon2D>(); //Walls as polygon (for collision checking)
 
 	public static void CollectVertices() {
 		CollectVertices (new string[1] {"Wall"});
@@ -23,131 +32,66 @@ public static class Geometry {
 		return segments;
 	}
 
-	public static void CollectVertices(string[] tags)
+
+
+	public static void CollectVertices(string[] tags, bool dyn = false, bool worldBorders = true)
 	{
+		Debug.Log ("Collecting vertices");
 		//Clear the vertices list, since it might not be the first time
 		//the vertices are collected (imagine moving walls).
-		vertices.Clear (); 
+		if (dyn) {
+			dynVertices.Clear ();
+			dynSegments.Clear ();
+		} else {
+			vertices.Clear (); 
+			segments.Clear ();
+		}
 
 		// Collect all the game objects that are supposed to react to light
 		//var gos = tags.SelectMany(tag => GameObject.FindGameObjectsWithTag(tag));
 		var gos = tags.SelectMany(tag => Tags.GameObjectsWithTag(tag));
 		//GameObject[] gos = GameObject.FindGameObjectsWithTag("Wall");
 
+		List<Polygon2D> polygons = new List<Polygon2D> ();
+
 		// Get all the vertices
 		foreach (GameObject go in gos)
 		{
 			Mesh goMesh = go.GetComponent<MeshFilter>().sharedMesh;
 
-			int[] tris = goMesh.triangles;
-
-			var uniqueTris = tris.Distinct ().ToArray();
-			//new List<int>();
-			//uniqueTris.Clear();
-
-			// Collect unique tris
-			/*for (int i = 0; i < tris.Length; i++) 
-			{
-
-				if (!uniqueTris.Contains(tris[i])) 
-				{
-					uniqueTris.Add(tris[i]);
-				}
-			} // for tris*/
-
-
-			// Calculate pseudoangles (much faster than angles)
-			List<PseudoAngleLocationTuple> psAngLocTuples = new List<PseudoAngleLocationTuple>();
-			for (int n=0;n<uniqueTris.Length;n++)
-			{
-				float x = goMesh.vertices[uniqueTris[n]].x;
-				float y = goMesh.vertices[uniqueTris[n]].y;
-
-				// Sort by angle without calculating the angle
-				// http://stackoverflow.com/questions/16542042/fastest-way-to-sort-vectors-by-angle-without-actually-computing-that-angle
-				float psAng = copysign(1-x/(Mathf.Abs (x)+Mathf.Abs(y)),y);
-
-				PseudoAngleLocationTuple psLoc = new PseudoAngleLocationTuple();
-				psLoc.pAngle = psAng;
-				psLoc.point = goMesh.vertices[uniqueTris[n]];
-				psAngLocTuples.Add(psLoc);
-			}
-
-			// Sort by pseudoangle
-			psAngLocTuples.Sort();
-
-			// Get sorted list of points
-			List<Vector3> sortedVerts = psAngLocTuples.Select(x => x.point).ToList();
-			//new List<Vector3>();
-			//uniqueTris.Clear();
-			/*for (int n=0; n < psAngLocTuples.Count; n++)
-			{
-				sortedVerts.Add(psAngLocTuples[n].point);
-			}*/
+			// Get sorted (clockwise) list of points
+			List<Vector3> sortedVerts = GetSortedVerticesFromMesh(goMesh).Select(v => go.transform.TransformPoint(v)).ToList();
 
 			if (sortedVerts.Count () <= 0)
 				continue;
 
-			// Add world borders, necessary to prevent misbehaviour if the world is not closed
-			const int safetyRange = 1000;
-			Camera cam = Camera.main;
-			Vector3 b1 = cam.ScreenToWorldPoint(new Vector3(-safetyRange, -safetyRange, Camera.main.nearClipPlane + 0.1f+safetyRange)); // bottom left
-			Vector3 b2 = cam.ScreenToWorldPoint(new Vector3(-safetyRange, cam.pixelHeight+safetyRange, cam.nearClipPlane + 0.1f+safetyRange)); // top left
-			Vector3 b3 = cam.ScreenToWorldPoint(new Vector3(cam.pixelWidth+safetyRange, cam.pixelHeight, cam.nearClipPlane + 0.1f+safetyRange)); // top right
-			Vector3 b4 = cam.ScreenToWorldPoint(new Vector3(cam.pixelWidth+safetyRange, -safetyRange, cam.nearClipPlane + 0.1f+safetyRange)); // bottom right
+			Polygon2D poly = GetPolyFromSortedVertices (sortedVerts);
 
-			// Transform world borders into vertices
-			Segment2D seg1 = new Segment2D();
-			seg1.a = new Vector2(b1.x,b1.y);
-			seg1.b = new Vector2(b2.x,b2.y);
-			segments.Add(seg1);
+			polygons.Add (poly);
 
-			seg1.a = new Vector2(b2.x,b2.y);
-			seg1.b = new Vector2(b3.x,b3.y);
-			segments.Add(seg1);
-
-			seg1.a = new Vector2(b3.x,b3.y);
-			seg1.b = new Vector2(b4.x,b4.y);
-			segments.Add(seg1);
-
-			seg1.a = new Vector2(b4.x,b4.y);
-			seg1.b = new Vector2(b1.x,b1.y);
-			segments.Add(seg1);
-
-			List<Segment2D> wall = new List<Segment2D> ();
-
-			//To calculate a point outside the wall
-			const float margin = 1;
-			float maxX = sortedVerts[0].x + margin, maxY = sortedVerts[0].y + margin;
-
-			// Connect the vertices with segment
-			// Since they are sorted by angle, they will be connected counter-clockwise
-			for (int n=0;n < sortedVerts.Count;n++)
-			{
-				if (sortedVerts [n].x >= maxX)
-					maxX = sortedVerts [n].x + margin;
-
-				if (sortedVerts [n].y >= maxY)
-					maxX = sortedVerts [n].y + margin;
-
-				// Segment start
-				Vector3 wPos1 = go.transform.TransformPoint(sortedVerts[n]);
-
-				// Segment end
-				Vector3 wPos2 = go.transform.TransformPoint(sortedVerts[(n+1) % sortedVerts.Count]);
-
-				vertices.Add(wPos1);
-
-				Segment2D seg = new Segment2D();
-				seg.a = new Vector2(wPos1.x,wPos1.y);
-				seg.b = new Vector2(wPos2.x, wPos2.y);
-				segments.Add(seg); //Add the segment to the global list of segments
-				wall.Add (seg); //Add the segment to the wall polygon
+			if (dyn) {
+				//Create dynamic walls, segments and vertices
+				dynWalls.Add (poly);
+				dynSegments.AddRange (poly.segments);
+				dynVertices.AddRange (sortedVerts);
+			} else {
+				// Create walls, segments and vertices
+				walls.Add(poly);
+				segments.AddRange (poly.segments);
+				vertices.AddRange (sortedVerts);
 			}
-
-			walls.Add (new Polygon2D (_segments : wall, _outside : new Vector2 (maxX, maxY)));
-			
 		}
+
+		if (!dyn) CutSegmentsToPieces (5.0F);
+
+		if (worldBorders) {
+			// Add world borders, necessary to prevent misbehaviour if the world is not closed
+			Polygon2D worldPoly = GetWorldBordersPoly ();
+
+			segments.AddRange (worldPoly.segments);
+		}
+
+
 	}
 
 	public static bool IsPointInAWall(Vector2 p){
@@ -250,12 +194,130 @@ public static class Geometry {
 			vertices.Add(new Vector3(pos.x + size, pos.y - size, 0));
 			vertices.Add(new Vector3(pos.x - size, pos.y - size, 0));
 			vertices.Add(new Vector3(pos.x - size, pos.y + size, 0));
-			return (!isBehindWall) && RayIntersectsWithAny(ray, GetSegmentsFromClockwiseVertices(vertices));
+			return (!isBehindWall) && RayIntersectsWithAny(ray, GetSegmentsFromSortedVertices(vertices));
 		}).ToList();
 
 	}
 
-	public static List<Segment2D> GetSegmentsFromClockwiseVertices(List<Vector3> verts){
+	public static List<Vector3> GetSortedVerticesFromMesh(Mesh mesh) {
+
+		int[] tris = mesh.triangles;
+
+		var uniqueTris = tris.Distinct ().ToArray();
+
+		// Calculate pseudoangles (much faster than angles)
+		List<PseudoAngleLocationTuple> psAngLocTuples = new List<PseudoAngleLocationTuple>();
+		for (int n=0;n<uniqueTris.Length;n++)
+		{
+			float x = mesh.vertices[uniqueTris[n]].x;
+			float y = mesh.vertices[uniqueTris[n]].y;
+
+			// Sort by angle without calculating the angle
+			// http://stackoverflow.com/questions/16542042/fastest-way-to-sort-vectors-by-angle-without-actually-computing-that-angle
+			float psAng = copysign(1-x/(Mathf.Abs (x)+Mathf.Abs(y)),y);
+
+			PseudoAngleLocationTuple psLoc = new PseudoAngleLocationTuple();
+			psLoc.pAngle = psAng;
+			psLoc.point = mesh.vertices[uniqueTris[n]];
+
+			bool isThereSimilarOne = false;
+
+			foreach (PseudoAngleLocationTuple p in psAngLocTuples) {
+				//L1 distance is good enough to recognize similar vertices, saves us from a Sqrt
+				if (Mathf.Abs (p.point.x - x) < verticesResolution &&
+				    Mathf.Abs (p.point.y - y) < verticesResolution) {
+					isThereSimilarOne = true;
+				}
+
+			}
+
+			if (!isThereSimilarOne)
+				psAngLocTuples.Add(psLoc);
+		}
+
+		// Sort by pseudoangle
+		psAngLocTuples.Sort();
+
+		// Get sorted list of points
+		List<Vector3> sortedVerts = psAngLocTuples.Select(x => x.point).ToList();
+
+		return sortedVerts;
+	}
+
+	public static Polygon2D GetWorldBordersPoly(){
+		List<Segment2D> segs = new List<Segment2D> ();
+
+		// Add world borders, necessary to prevent misbehaviour if the world is not closed
+		const int safetyRange = 1000;
+
+		Camera cam = Camera.main;
+		Vector3 b1 = cam.ScreenToWorldPoint(new Vector3(-safetyRange, -safetyRange, Camera.main.nearClipPlane + 0.1f+safetyRange)); // bottom left
+		Vector3 b2 = cam.ScreenToWorldPoint(new Vector3(-safetyRange, cam.pixelHeight+safetyRange, cam.nearClipPlane + 0.1f+safetyRange)); // top left
+		Vector3 b3 = cam.ScreenToWorldPoint(new Vector3(cam.pixelWidth+safetyRange, cam.pixelHeight, cam.nearClipPlane + 0.1f+safetyRange)); // top right
+		Vector3 b4 = cam.ScreenToWorldPoint(new Vector3(cam.pixelWidth+safetyRange, -safetyRange, cam.nearClipPlane + 0.1f+safetyRange)); // bottom right
+
+		float max = (safetyRange * 2) + cam.pixelHeight + cam.pixelHeight;
+
+		// Transform world borders into vertices
+		Segment2D seg1 = new Segment2D();
+		seg1.a = new Vector2(b1.x,b1.y);
+		seg1.b = new Vector2(b2.x,b2.y);
+		segs.Add(seg1);
+
+		seg1.a = new Vector2(b2.x,b2.y);
+		seg1.b = new Vector2(b3.x,b3.y);
+		segs.Add(seg1);
+
+		seg1.a = new Vector2(b3.x,b3.y);
+		seg1.b = new Vector2(b4.x,b4.y);
+		segs.Add(seg1);
+
+		seg1.a = new Vector2(b4.x,b4.y);
+		seg1.b = new Vector2(b1.x,b1.y);
+		segs.Add(seg1);
+
+		return new Polygon2D (_segments : segs, _outside : new Vector2 (max, max), _filled : false);
+	}
+
+	/// <summary>
+	/// Gets a polygon from clockwise vertices.
+	/// Note: Remember to apply gameObject.transform.TransformPoint if the vertices if from a mesh
+	/// </summary>
+	/// <returns>The poly from clockwise vertices.</returns>
+	/// <param name="sortedVerts">Sorted verts in world coordinates.</param>
+	public static Polygon2D GetPolyFromSortedVertices(List<Vector3> sortedVerts){
+		
+		List<Segment2D> segs = new List<Segment2D> ();
+
+		float maxX = sortedVerts[0].x + margin, maxY = sortedVerts[0].y + margin;
+
+		for (int n=0;n < sortedVerts.Count;n++)
+		{
+			if (sortedVerts [n].x >= maxX)
+				maxX = sortedVerts [n].x + margin;
+
+			if (sortedVerts [n].y >= maxY)
+				maxX = sortedVerts [n].y + margin;
+
+			// Segment start
+			Vector3 wPos1 = sortedVerts[n];
+
+			// Segment end
+			Vector3 wPos2 = sortedVerts[(n+1) % sortedVerts.Count];
+
+			vertices.Add(wPos1);
+
+			Segment2D seg = new Segment2D();
+			seg.a = new Vector2(wPos1.x,wPos1.y);
+			seg.b = new Vector2(wPos2.x, wPos2.y);
+			segs.Add (seg); //Add the segment to the wall polygon
+		}
+
+		return new Polygon2D (_segments : segs, _outside : new Vector2 (maxX, maxY));
+
+	}
+
+	public static List<Segment2D> GetSegmentsFromSortedVertices(List<Vector3> verts){
 		List<Segment2D> res = new List<Segment2D> ();
 		for (int i=0;i < verts.Count;i++)
 		{
@@ -327,6 +389,44 @@ public static class Geometry {
 
 	}
 
+	/// <summary>
+	/// Cuts the segments to pieces of maximum length maxLength.
+	/// This is an optimization to allow lights to not care about far away objects
+	/// WARNING: Call this procedure only once after having acquired the global segments and vertices, every additional call is going to slow down the frame rate
+	/// </summary>
+	/// <param name="maxLength">Max length.</param>
+	private static void CutSegmentsToPieces(float maxLength) {
+		List<Segment2D> resSegs = new List<Segment2D>(segments.Count * 2);
+		List<Vector3> resVects = new List<Vector3> (vertices.Count * 2);
+
+		foreach (Segment2D s in segments) {
+			Vector2 diff = s.b - s.a;
+			float dist = diff.magnitude;
+
+			if (dist > maxLength) {
+				int num = (int)(dist / maxLength);
+				Vector2 oldv = s.a;
+
+				for (int i = 1; i <= num; i++) {
+					Vector2 newv = oldv + (diff * (maxLength / dist));
+					resSegs.Add (new Segment2D (oldv, newv));
+					resVects.Add (new Vector3 (newv.x, newv.y, -1.0F));
+
+					Debug.DrawLine (new Vector3 (newv.x - 0.2F, newv.y - 0.2F, -10F), new Vector3 (newv.x + 0.2F, newv.y + 0.2F, -10F), Color.blue, 100F);
+
+					oldv = newv;
+				}
+
+				resSegs.Add (new Segment2D (oldv, s.b));
+
+			} else {
+				resSegs.Add (s);
+			}
+		}
+		segments.Clear ();
+		segments.AddRange(resSegs);
+		vertices.AddRange (resVects);
+	}
 
 	// a = a * sgn(b)
 	// http://stackoverflow.com/a/1905142
@@ -349,6 +449,13 @@ public struct Intersection : System.IComparable<Intersection>
 
 	public int CompareTo(Intersection that) {
 		return this.param.Value.CompareTo(that.param.Value);
+	}
+
+	public Intersection(Vector3? _v, float? _angle, float? _param)
+	{
+		this.angle = _angle;
+		this.param = _param;
+		this.v = _v;
 	}
 
 }
@@ -400,11 +507,13 @@ public struct Polygon2D
 {
 	public List<Segment2D> segments;
 	public Vector2 outside;
+	public bool filled;
 
-	public Polygon2D(List<Segment2D> _segments, Vector2 _outside)
+	public Polygon2D(List<Segment2D> _segments, Vector2 _outside, bool _filled = true)
 	{
 		this.segments = _segments;
 		this.outside = _outside;
+		this.filled = _filled;
 	}
 
 }

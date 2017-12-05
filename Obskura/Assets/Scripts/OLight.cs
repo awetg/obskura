@@ -50,6 +50,8 @@ public class OLight : MonoBehaviour {
 	public bool IsOn = true;
 	public float FireProbabilityPerSecond = 0F;
 
+	private bool isEnabled = true;
+
 	//public Color Color = new Color(1.0F, 1.0F, 1.0F);
 
 	//Initialize the mesh and the vertices
@@ -124,6 +126,9 @@ public class OLight : MonoBehaviour {
 			vertAngles.Add (maxAngle + delta);
 		}
 
+		//Sort the angles in ascending order (counter-clockwise)
+		vertAngles.Sort ();
+
 		// Cast rays to all the angles
 		intersects.Clear();
 		for(var j=0;j<vertAngles.Count;j++)
@@ -153,10 +158,7 @@ public class OLight : MonoBehaviour {
 			*/
 
 			//Find the first viable intersection
-			Intersection first;
-			first.param = null;
-			first.v = null;
-			first.angle = null;
+			Intersection first = new Intersection(null, null, null);
 			bool isThereAnIntersection = false;
 			for (int i = 0; i < segments.Count; i++) {
 				Intersection tmp = Geometry.GetIntersection (ray, segments [i]);
@@ -180,26 +182,6 @@ public class OLight : MonoBehaviour {
 					nearestIntersection = tmpIntersect;
 			}
 
-
-			/*
-			bool found = false;
-
-			for(int i=0;i<segments.Count;i++)
-			{
-				Intersection intersect = getIntersection(ray,segments[i]);
-
-				if(intersect.v==null) continue;
-
-				if(!found || intersect.angle<nearestInersection.angle)
-				{
-					found = true;
-					nearestInersection=intersect;
-				}
-			}  // for segments*/
-
-			// Intersect angle
-			//if(nearestInersection==null) continue;
-
 			//Set the intercept angle for the valid interception we found
 			nearestIntersection.angle = angle;
 
@@ -207,12 +189,7 @@ public class OLight : MonoBehaviour {
 			intersects.Add(nearestIntersection);
 
 		}
-
-
-		// Sort intersects by angle
-		intersects.Sort((x, y) =>{ return Comparer<float?>.Default.Compare(x.angle, y.angle); });
-
-
+			
 		// Create mesh objetcs
 		List<Vector3> verts = new List<Vector3>();
 		List<int> tris = new List<int>();
@@ -276,10 +253,16 @@ public class OLight : MonoBehaviour {
 	void Update () 
 	{
 		if (!IsOn) {
-			if (lightMesh != null)
-				lightMesh.Clear ();
-
+			if (isEnabled) {
+				GetComponent<MeshRenderer> ().enabled = false;
+				isEnabled = false;
+			}
 			return;
+		}
+
+		if (IsOn && !isEnabled) {
+			GetComponent<MeshRenderer> ().enabled = true;
+			isEnabled = true;
 		}
 
 		if (Static) {
