@@ -112,6 +112,33 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!84 &56434366
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_Width: 814
+  m_Height: 301
+  m_AntiAliasing: 1
+  m_DepthFormat: 2
+  m_ColorFormat: 0
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 0
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
 --- !u!1 &96477228
 GameObject:
   m_ObjectHideFlags: 0
@@ -773,7 +800,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 1024
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 989472148}
+  m_TargetTexture: {fileID: 1485625427}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -885,7 +912,7 @@ MonoBehaviour:
   Mouse: 0
   Static: 0
   LightColor: {r: 1, g: 1, b: 1, a: 1}
-  Intensity: 1
+  Intensity: 2
   DimmingDistance: 5
   DamagePerSecond: 100
   IsStrong: 0
@@ -960,7 +987,7 @@ GameObject:
   - component: {fileID: 643527823}
   - component: {fileID: 643527824}
   - component: {fileID: 643527825}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -1192,33 +1219,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -0.0000019073486}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!84 &989472148
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_Width: 814
-  m_Height: 301
-  m_AntiAliasing: 1
-  m_DepthFormat: 2
-  m_ColorFormat: 0
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 0
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
 --- !u!1 &1014377674
 GameObject:
   m_ObjectHideFlags: 0
@@ -1532,7 +1532,7 @@ MonoBehaviour:
   Mouse: 0
   Static: 1
   LightColor: {r: 1, g: 0, b: 0, a: 1}
-  Intensity: 0.5
+  Intensity: 1
   DimmingDistance: 5
   DamagePerSecond: 10
   IsStrong: 0
@@ -1952,6 +1952,33 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1481802630}
   m_Mesh: {fileID: 4300002, guid: b5290684820a94548bedb95083785116, type: 3}
+--- !u!84 &1485625427
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_Width: 814
+  m_Height: 301
+  m_AntiAliasing: 1
+  m_DepthFormat: 2
+  m_ColorFormat: 0
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 0
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
 --- !u!1 &1492330168
 GameObject:
   m_ObjectHideFlags: 0
@@ -2284,7 +2311,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 32
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 1783758260}
+  m_TargetTexture: {fileID: 56434366}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -2421,33 +2448,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1775735571}
   m_Mesh: {fileID: 4300002, guid: b5290684820a94548bedb95083785116, type: 3}
---- !u!84 &1783758260
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_Width: 814
-  m_Height: 301
-  m_AntiAliasing: 1
-  m_DepthFormat: 2
-  m_ColorFormat: 0
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 0
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
 --- !u!1 &1868657698
 GameObject:
   m_ObjectHideFlags: 0
@@ -2598,7 +2598,7 @@ MonoBehaviour:
   LightCamera: {fileID: 538050747}
   MainCamera: {fileID: 1916116704}
   UICamera: {fileID: 1752824565}
-  Intensity: 5
+  Intensity: 10
   Overlay: {r: 0, g: 0, b: 0, a: 1}
 --- !u!81 &1916116702
 AudioListener:

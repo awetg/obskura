@@ -23,7 +23,7 @@ public class Baal : Enemy {
 	float endChaseTime = 0;
 
 	// Use this for initialization
-	void Start () {
+	protected override void Start () {
 		SetState(startState);	//set state to idle from none
 		centrePosition = transform.position;
 		//Override here the default values from Enemy

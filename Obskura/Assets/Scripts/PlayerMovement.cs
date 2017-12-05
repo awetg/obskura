@@ -19,6 +19,7 @@ public class PlayerMovement : MonoBehaviour {
 	private float resetCameraAt = 0;
 	private float resetCameraAfter = 3;
 	private float cameraDamage = 0;
+	private bool focused = false;
 
 	public OLaser PlayerLaser;
 
@@ -66,6 +67,18 @@ public class PlayerMovement : MonoBehaviour {
 			PlayerLaser.Fire (mousePosition);
 		}
 			
+		if (!focused && Input.GetKeyDown (KeyCode.LeftControl)) {
+			TorchLight.ConeAngle /= 3f;
+			TorchLight.Intensity *= 1.3f;
+			TorchLight.DimmingDistance *= 2f;
+			focused = true;
+		} else if (focused && Input.GetKeyUp(KeyCode.LeftControl)) {
+			TorchLight.ConeAngle *= 3f;
+			TorchLight.Intensity /= 1.3f;
+			TorchLight.DimmingDistance /= 2f;
+			focused = false;
+		}
+		
 		if (resetCameraAt > Time.time) {
 			float proportion = (resetCameraAt - Time.time) / resetCameraAfter;
 

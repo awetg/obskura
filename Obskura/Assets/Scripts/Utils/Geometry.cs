@@ -10,13 +10,20 @@ public static class Geometry {
 	const float verticesResolution = 0.01f;
 
 	static List<Segment2D> segments = new List<Segment2D>(); //Segments of the walls or light blocking objects
-	static List<Segment2D> enrichedSegments = new List<Segment2D>(); //Segments of the walls or light blocking objects
 	static List<Segment2D> dynSegments = new List<Segment2D>();
 	static List<Vector3> vertices = new List<Vector3>(); //Vertices of the walls or light blocking objects
-	static List<Vector3> enrichedVertices = new List<Vector3>(); 
 	static List<Vector3> dynVertices = new List<Vector3>(); 
 	static List<Polygon2D> walls = new List<Polygon2D>(); //Walls as polygon (for collision checking)
 	static List<Polygon2D> dynWalls = new List<Polygon2D>(); //Walls as polygon (for collision checking)
+
+	private static float segMaxLength = 8.0F;
+
+	public static float MaxSegmentLength {
+		get{
+			return segMaxLength;
+		}
+	}
+
 
 	public static void CollectVertices() {
 		CollectVertices (new string[1] {"Wall"});
@@ -24,19 +31,56 @@ public static class Geometry {
 		Debug.Log (vertices.Count);
 	}
 		
-	public static List<Vector3> GetVertices() {
-		return vertices;
+	public static List<Vector3> GetVertices(bool dyn = false) {
+		if (dyn)
+			return dynVertices;
+		else
+			return vertices;
 	}
 
-	public static List<Segment2D> GetSegments() {
-		return segments;
+	public static List<Segment2D> GetSegments(bool dyn = false) {
+		if (dyn)
+			return dynSegments;
+		else
+			return segments;
+	}
+
+	public static List<Vector3> GetVertices(Vector2 pos, float range = 8.0F) {
+		List<Vector3> borderVertices = GetSquareCornersVertices (pos, range);
+
+		return vertices.Where(v => (Mathf.Abs(pos.x - v.x) < range) && (Mathf.Abs(pos.y - v.y) < range))
+			.Concat(borderVertices).Concat(dynVertices).ToList();
+
+		/*float sqrRange = range * range;
+		return vertices.Where(v => {
+			float dx = pos.x - v.x;
+			float dy = pos.y - v.y;
+			return (dx*dx) + (dy*dy) < sqrRange;}
+		).Concat(borderVertices).Concat(dynVertices).ToList();*/
+	}
+
+	public static List<Segment2D> GetSegments(Vector2 pos, float range = 8.0F) {
+		List<Segment2D> borderSegments = GetSquareCornersSegments (pos, range); //GetSquareBorderSegments (pos, range);
+		return segments.Where(s => 
+			(Mathf.Abs(pos.x - s.a.x) < range) && (Mathf.Abs(pos.y - s.a.y) < range) &&
+			(Mathf.Abs(pos.x - s.b.x) < range) && (Mathf.Abs(pos.y - s.b.y) < range)
+		).Concat(borderSegments).Concat(dynSegments).ToList();
+		/*return segments.Where(s => {
+			float dxa = pos.x - s.a.x;
+			float dya = pos.y - s.a.y;
+			float dxb = pos.x - s.b.x;
+			float dyb = pos.y - s.b.y;
+			return (dxa*dxa)+(dya*dya) < sqrRange && (dxb*dxb)+(dyb*dyb) < sqrRange;
+		}).Concat(borderSegments).Concat(dynSegments).ToList();*/
 	}
 
 
-
-	public static void CollectVertices(string[] tags, bool dyn = false, bool worldBorders = true)
+	public static void CollectVertices(string[] tags, bool dyn = false, bool worldBorders = true, float maxSegLength = 8.0F)
 	{
-		Debug.Log ("Collecting vertices");
+		if (!dyn) {
+			segMaxLength = maxSegLength;
+		}
+		//Debug.Log ("Collecting vertices");
 		//Clear the vertices list, since it might not be the first time
 		//the vertices are collected (imagine moving walls).
 		if (dyn) {
@@ -82,7 +126,7 @@ public static class Geometry {
 			}
 		}
 
-		if (!dyn) CutSegmentsToPieces (5.0F);
+		if (!dyn) CutSegmentsToPieces (maxSegLength);
 
 		if (worldBorders) {
 			// Add world borders, necessary to prevent misbehaviour if the world is not closed
@@ -389,6 +433,20 @@ public static class Geometry {
 
 	}
 
+	public static List<Vector3> GetSquareCornersVertices(Vector2 center, float size) {
+		float x = center.x, y = center.y;
+		Vector3 b1 = new Vector3(x-size, y-size, 0); // bottom left
+		Vector3 b2 = new Vector3(x-size, y+size, 0); // top left
+		Vector3 b3 = new Vector3(x+size, y+size, 0); // top right
+		Vector3 b4 = new Vector3(x+size, y-size, 0); // bottom right
+
+		return new List<Vector3> { b1, b2, b3, b4 };
+	} 
+
+	public static  List<Segment2D> GetSquareCornersSegments(Vector2 center, float size) {
+		return GetSegmentsFromSortedVertices(GetSquareCornersVertices(center, size));
+	}
+		
 	/// <summary>
 	/// Cuts the segments to pieces of maximum length maxLength.
 	/// This is an optimization to allow lights to not care about far away objects
@@ -412,7 +470,7 @@ public static class Geometry {
 					resSegs.Add (new Segment2D (oldv, newv));
 					resVects.Add (new Vector3 (newv.x, newv.y, -1.0F));
 
-					Debug.DrawLine (new Vector3 (newv.x - 0.2F, newv.y - 0.2F, -10F), new Vector3 (newv.x + 0.2F, newv.y + 0.2F, -10F), Color.blue, 100F);
+					//Debug.DrawLine (new Vector3 (newv.x - 0.2F, newv.y - 0.2F, -10F), new Vector3 (newv.x + 0.2F, newv.y + 0.2F, -10F), Color.blue, 100F);
 
 					oldv = newv;
 				}

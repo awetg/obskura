@@ -34,7 +34,7 @@ public class OLight : MonoBehaviour {
 
 	const float defaultIntensity = 1.0F;
 	const string damageTag = "Enemy";
-	const float maximumDistanceFactor = 2.5F;
+	const float maximumDistanceFactor = 1.6F;
 
 	//Exposing parameters to the inspector
 	public Vector2 Position;
@@ -65,6 +65,10 @@ public class OLight : MonoBehaviour {
 		Position = transform.position;
 	}
 
+	int debugVertC = 0;
+	int debugSegC = 0;
+	int debugVertCA = 0;
+
 	/// <summary>
 	/// Refreshs the light mesh (for static lights).
 	/// Call when the shadown casting objects in the map move or change.
@@ -72,19 +76,33 @@ public class OLight : MonoBehaviour {
 	/// </summary>
 	public void RefreshLight(){
 
-		List<Segment2D> segments = Geometry.GetSegments (); //Segments of the walls or light blocking objects
-		List<Vector3> vertices = Geometry.GetVertices(); //Vertices of the walls or light blocking objects
-
+		float maxRange = DimmingDistance * maximumDistanceFactor + Geometry.MaxSegmentLength + 0.1F;
 
 		// Get the light position
 		Vector3 pos = Mouse ? Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,Input.mousePosition.y,10))
 			: new Vector3(Position.x, Position.y, 0);
+
+		List<Segment2D> segments = Geometry.GetSegments(new Vector2(pos.x, pos.y), range : maxRange); //Segments of the walls or light blocking objects
+		List<Vector3> vertices = Geometry.GetVertices(new Vector2(pos.x, pos.y), range : maxRange); //Vertices of the walls or light blocking objects
+
+		if (segments.Count != debugSegC) {
+			debugSegC = segments.Count;
+			Debug.Log ("Segments: " + debugSegC);
+		}
+
+		if (vertices.Count != debugVertC) {
+			debugVertC = vertices.Count;
+			Debug.Log ("Segments: " + debugVertC);
+		}
 
 		const float delta = 0.00001f;
 
 		// Set the current position in the shader
 		Material mat = GetComponent<Renderer>().material;
 		mat.SetVector ("_Origin", new Vector4(pos.x, pos.y, pos.z, 0));
+		mat.SetFloat ("_Intensity", Intensity / 10.0F);
+		mat.SetFloat ("_Dist", DimmingDistance);
+		mat.SetColor ("_Color", LightColor);
 
 		// Move light to position
 		transform.position = pos;
@@ -125,6 +143,11 @@ public class OLight : MonoBehaviour {
 			vertAngles.Add (maxAngle);
 			vertAngles.Add (maxAngle + delta);
 		}
+
+		/*if (vertAngles.Count != debugVertCA) {
+			debugVertCA = vertAngles.Count;
+			Debug.Log ("Angles: " + debugVertCA);
+		}*/
 
 		//Sort the angles in ascending order (counter-clockwise)
 		vertAngles.Sort ();
