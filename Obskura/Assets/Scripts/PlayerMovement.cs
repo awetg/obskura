@@ -21,7 +21,7 @@ public class PlayerMovement : MonoBehaviour {
 	private float cameraDamage = 0;
 	private bool focused = false;
 
-	public OLaser PlayerLaser;
+	public OGun PlayerLaser;
 
 	public OLight TorchLight;
 
@@ -64,7 +64,7 @@ public class PlayerMovement : MonoBehaviour {
 
 		if (Input.GetMouseButtonDown(0)) 	//if mouse is clicked Move player
 		{
-			PlayerLaser.Fire (mousePosition);
+			//PlayerLaser.Fire (mousePosition);
 		}
 			
 		if (!focused && Input.GetKeyDown (KeyCode.LeftControl)) {

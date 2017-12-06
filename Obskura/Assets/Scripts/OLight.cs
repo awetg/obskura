@@ -34,7 +34,7 @@ public class OLight : MonoBehaviour {
 
 	const float defaultIntensity = 1.0F;
 	const string damageTag = "Enemy";
-	const float maximumDistanceFactor = 1.6F;
+	public float maximumDistanceFactor = 1.6F;
 
 	//Exposing parameters to the inspector
 	public Vector2 Position;

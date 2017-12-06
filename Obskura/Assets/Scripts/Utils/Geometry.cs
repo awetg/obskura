@@ -243,6 +243,34 @@ public static class Geometry {
 
 	}
 
+	public static Intersection GetFirstIntersection(Vector2 a, Vector2 b, float maxDistance){
+		Ray2D ray = new Ray2D (a, b);
+
+		//Find the first viable intersection
+		Intersection first = new Intersection(null, null, null);
+		bool isThereAnIntersection = false;
+		for (int i = 0; i < segments.Count; i++) {
+			Intersection tmp = Geometry.GetIntersection (ray, segments [i]);
+			if (tmp.v != null) {
+				first = tmp;
+				isThereAnIntersection = true;
+				break;
+			}
+		}
+
+		//Find the nearest interception by computing a minimum
+		Intersection nearestIntersection = first;
+		foreach (Segment2D s in Geometry.GetSegments(a, maxDistance)) {
+			Intersection tmpIntersect = Geometry.GetIntersection(ray, s);
+			if (tmpIntersect.param != null && tmpIntersect.v != null &&
+				tmpIntersect.param.Value < nearestIntersection.param.Value)
+
+				nearestIntersection = tmpIntersect;
+		}
+
+		return nearestIntersection;
+	}
+
 	public static List<Vector3> GetSortedVerticesFromMesh(Mesh mesh) {
 
 		int[] tris = mesh.triangles;
