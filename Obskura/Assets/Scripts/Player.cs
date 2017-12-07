@@ -39,6 +39,9 @@ public class Player : MonoBehaviour {
 	public OLight CurrentTorchLight;
 	public OGun PlasmaGun;
 
+	//Main camera instancce
+	private OLightManager lightManager;
+
 	//	public GameObject bulletPrefab;	//Bullets to be fired from gunPivot or is laser just drag laser prefab in INSPERCTOR-unity
 	//	public Transform LightPivot,gunPivot;	//gunPivot to fire light, bullets or laser and hitPivot to check if damage can be done
 
@@ -47,6 +50,9 @@ public class Player : MonoBehaviour {
 
 	void Start() //Initializing variables
 	{
+		var camera = GameObject.FindGameObjectWithTag ("MainCamera");
+		lightManager = camera.GetComponent<OLightManager> ();
+
 		MyRigidbody = GetComponent<Rigidbody2D>();
 		PlayerAnimator = GetComponent<Animator> ();
 		PlayerAnimator.SetBool("move", false);
@@ -109,18 +115,13 @@ public class Player : MonoBehaviour {
 		if (resetCameraAt > Time.time) {
 			float proportion = (resetCameraAt - Time.time) / resetCameraAfter;
 
-			var camera = GameObject.FindGameObjectWithTag ("MainCamera");
-
-			if (camera != null) {
-				var lightManager = camera.GetComponent<OLightManager> ();
-				lightManager.Overlay = new Color (proportion * cameraDamage, 0, 0);
+			if (lightManager != null) {
+				lightManager.Overlay = new Color ((proportion * cameraDamage) % 1.0F, 0, 0);
 			}
 		} else if (resetCameraAt < Time.time) {
 			cameraDamage = 0;
-			var camera = GameObject.FindGameObjectWithTag ("MainCamera");
-
-			if (camera != null) {
-				var lightManager = camera.GetComponent<OLightManager> ();
+		
+			if (lightManager != null) {
 				lightManager.Overlay = new Color (0, 0, 0);
 			}
 		}
@@ -184,16 +185,13 @@ public class Player : MonoBehaviour {
 
 	public void DamagePlayer(float coming_hp){
 
-		hp =hp - coming_hp;
+		hp = hp - coming_hp;
 		//NOTE: The controller should command to write the player's hp to screen
 		//GameController.ShowDamage (hp);	//send hp to screen, only player hp get displayed
 
-		var camera = GameObject.FindGameObjectWithTag ("MainCamera");
-
-		if (camera != null) {
-			var lightManager = camera.GetComponent<OLightManager> ();
-			lightManager.Overlay =  new Color(coming_hp, 0, 0);
-			cameraDamage = coming_hp;
+		if (lightManager != null) {
+			cameraDamage += coming_hp / 30.0f;
+			lightManager.Overlay =  new Color(cameraDamage % 1.0F, 0, 0);
 			resetCameraAt = Time.time + resetCameraAfter;
 		}
 

@@ -62,6 +62,7 @@ public class OLight : MonoBehaviour {
 	}
 
 	void Start() {
+		isEnabled = IsOn;
 		Position = transform.position;
 	}
 
@@ -277,14 +278,14 @@ public class OLight : MonoBehaviour {
 	{
 		if (!IsOn) {
 			if (isEnabled) {
-				GetComponent<MeshRenderer> ().enabled = false;
+				GetComponent<Renderer> ().enabled = false;
 				isEnabled = false;
 			}
 			return;
 		}
 
 		if (IsOn && !isEnabled) {
-			GetComponent<MeshRenderer> ().enabled = true;
+			GetComponent<Renderer> ().enabled = true;
 			isEnabled = true;
 		}
 
