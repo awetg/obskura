@@ -150,7 +150,7 @@ public class Hades : Enemy, ICollidableActor2D
 	}
 
 	public float GetSize() {
-		return 3;
+		return 1.5f;
 	}
 
 	public Vector2 GetPosition() {
@@ -159,6 +159,18 @@ public class Hades : Enemy, ICollidableActor2D
 
 	public GameObject GetGameObject() {
 		return gameObject;
+	}
+
+	public void CollidedBy(CollisionType type, float damage, Vector2 force, bool setOnFire = false){
+		if (type == CollisionType.PLASMA) {
+			GetDamaged (damage);
+			if (setOnFire)
+				SetOnFire ();
+		}
+	}
+
+	public bool IsColliderActive(){
+		return enemyHp > 0.0f;
 	}
 }
 
