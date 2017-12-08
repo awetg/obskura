@@ -77,6 +77,7 @@ public class OLight : MonoBehaviour {
 	/// </summary>
 	public void RefreshLight(){
 
+		bool conical = ConeAngle < Mathf.PI * 2;
 		float maxRange = DimmingDistance * maximumDistanceFactor + Geometry.MaxSegmentLength + 0.1F;
 
 		// Get the light position
@@ -108,6 +109,18 @@ public class OLight : MonoBehaviour {
 		// Move light to position
 		transform.position = pos;
 
+		//To be used for conical light, minimum and maximum angles in the cone
+		float minAngle = 0;
+		float maxAngle = 0;
+
+		if (conical) {
+			minAngle = (Direction - (ConeAngle / 2));
+			maxAngle = (Direction + (ConeAngle / 2));
+			//Normalize the angles to the range (-PI, PI]
+			//(same range as Mathf.Atan2)
+			minAngle = minAngle <= Mathf.PI ? minAngle : minAngle - Mathf.PI * 2;
+			maxAngle = maxAngle <= Mathf.PI ? maxAngle : maxAngle - Mathf.PI * 2;
+		}
 
 		// For every vertices, get its angle with respect to the x-axis
 		// Additionally, add two other rays to hit also objects behind the corner
@@ -115,6 +128,11 @@ public class OLight : MonoBehaviour {
 		for(var i=0;i<vertices.Count;i++)
 		{
 			float angle = Mathf.Atan2(vertices[i].y-pos.y,vertices[i].x-pos.x);
+
+			if (conical && isInsideLightCone (-Mathf.PI, Direction, ConeAngle) && angle <= maxAngle) {
+				angle += 2 * Mathf.PI;
+				//Debug.Log ("In singularity");
+			}
 
 			//Ignore the vertices outside the light cone
 			if (ConeAngle > Mathf.PI * 2 || isInsideLightCone(angle, Direction, ConeAngle)) {
@@ -124,25 +142,22 @@ public class OLight : MonoBehaviour {
 			}
 
 		}
-		// Cast two rays for the edge of the cone:
-		if (ConeAngle < Mathf.PI * 2) {
-			float minAngle = (Direction - (ConeAngle / 2));
-			float maxAngle = (Direction + (ConeAngle / 2));
-
-
-			//Normalize the angles to the range (-PI, PI]
-			//(same range as Mathf.Atan2)
-			minAngle = minAngle <= Mathf.PI ? minAngle : minAngle - Mathf.PI * 2;
-			maxAngle = maxAngle <= Mathf.PI ? maxAngle : maxAngle - Mathf.PI * 2;
-
+		// if conical, Cast two rays for the edge of the cone:
+		if (conical) {
 
 			//Add them in the list of rays to cast
-			vertAngles.Add(minAngle - delta);
+			//vertAngles.Add(minAngle - delta);
 			vertAngles.Add(minAngle);
-			vertAngles.Add(minAngle + delta);
-			vertAngles.Add (maxAngle - delta);
-			vertAngles.Add (maxAngle);
-			vertAngles.Add (maxAngle + delta);
+			//vertAngles.Add(minAngle + delta);
+			//vertAngles.Add (maxAngle - delta);
+
+			if (isInsideLightCone (-Mathf.PI, Direction, ConeAngle)) {
+				vertAngles.Add (maxAngle + 2 * Mathf.PI);
+				//Debug.Log ("In singularity");
+			} else {
+				vertAngles.Add (maxAngle);
+			}
+			//vertAngles.Add (maxAngle + delta);
 		}
 
 		/*if (vertAngles.Count != debugVertCA) {
@@ -227,14 +242,18 @@ public class OLight : MonoBehaviour {
 		{
 			if (intersects [i].v != null) {
 				verts.Add (transform.InverseTransformPoint ((Vector3)intersects [i].v));
-				verts.Add (transform.InverseTransformPoint ((Vector3)intersects [(i + 1) % intersects.Count].v));
+				//verts.Add (transform.InverseTransformPoint ((Vector3)intersects [(i + 1) % intersects.Count].v));
 			}
 		}
+
+		//Not enough vertices to build a light polygon
+		if ((conical && verts.Count < 3) || (!conical && verts.Count < 4))
+			return;
 
 		//Build the segments of the logical polygon used to detect if an object is lit
 		lightSegments.Clear ();
 
-		for (int i=0;i < verts.Count;i++)
+		for (int i=1;i < verts.Count - 1;i++)
 		{
 			// Segment start
 			Vector3 wPos1 = transform.TransformPoint(verts[i]);
@@ -245,16 +264,59 @@ public class OLight : MonoBehaviour {
 			Segment2D seg = new Segment2D();
 			seg.a = new Vector2(wPos1.x,wPos1.y);
 			seg.b = new Vector2(wPos2.x, wPos2.y);
+
+			Debug.DrawLine (seg.a, seg.b, Color.red, 0.1F);
 			lightSegments.Add(seg);
 		}
 
-		// Triangles of the mesh
+		Vector3 firstVert = transform.TransformPoint(verts[1]);
+		Vector3 lastVert = transform.TransformPoint(verts[verts.Count - 1]);
+		Vector3 center = transform.TransformPoint(verts[0]);
+
+		if (conical) {
+			//Connect the center with the first and the last vertices
+			Segment2D seg1 = new Segment2D();
+			Segment2D seg2 = new Segment2D();
+			seg1.a = lastVert;
+			seg1.b = center;
+			seg2.a = center;
+			seg2.b = firstVert;
+			lightSegments.Add (seg1);
+			lightSegments.Add (seg2);
+			//Debug.DrawLine (seg1.a, seg1.b, Color.red, 10F);
+			//Debug.DrawLine (seg2.a, seg2.b, Color.red, 10F);
+
+		} else {
+			//Discard the center and connect the first and the last vertices
+			Segment2D seg = new Segment2D();
+			seg.a = lastVert;
+			seg.b = firstVert;
+			lightSegments.Add (seg);
+			//Debug.DrawLine (seg.a, seg.b, Color.red, 10F);
+		}
+
+
+		// Triangles of the mesh (except the last)
+		for(var i=1;i<verts.Count-1;i++)
+		{
+			tris.Add((i+1));
+			tris.Add((i));
+			tris.Add(0);
+		}
+
+		// Add the last triangle
+		tris.Add(1);
+		tris.Add(verts.Count-1);
+		tris.Add(0);
+
+
+		/* // Triangles of the mesh
 		for(var i=0;i<verts.Count+1;i++)
 		{
 			tris.Add((i+1) % verts.Count);
 			tris.Add((i) % verts.Count);
 			tris.Add(0);
-		}
+		}*/
 
 		// Build mesh
 		lightMesh.Clear();
@@ -340,12 +402,13 @@ public class OLight : MonoBehaviour {
 	/// <param name="polySegments">Segments of the polygon.</param>
 	/// <param name="p">Point</param>
 	bool ContainsPoint (List<Segment2D> polySegments, Vector3 p)  { 
-		//var maxSegDist = (float) polySegments.Max (s => Mathf.Max (s.a.magnitude, s.b.magnitude)) * 2;
-		//var outside = new Vector3 (maxSegDist, maxSegDist + 0.01F * maxSegDist, 0);
+		var maxSegDist = (float) polySegments.Max (s => Mathf.Max (s.a.magnitude, s.b.magnitude)) * 2;
+		var outside = new Vector3 (maxSegDist, maxSegDist + 0.01F * maxSegDist, 0);
 		//We need to displace the starting point slightly, to make it be inside even in case of conic light
 		//var direction = new Vector3(Mathf.Cos(Direction), Mathf.Sin(Direction)) * 0.1F;
 		//Cast a ray from the light to the point to test
-		Ray2D ray = new Ray2D(transform.position, p);
+		//Ray2D ray = new Ray2D(transform.position, p);
+		Ray2D ray = new Ray2D(outside, p);
 		//float dist = ((transform.position) - p).magnitude;
 		//Get all the intersections between the segments if the light poligon and the casted ray
 		var allIntersct = polySegments.Select (s => Geometry.GetIntersection (ray, s));

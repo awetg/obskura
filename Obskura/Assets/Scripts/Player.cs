@@ -100,14 +100,14 @@ public class Player : MonoBehaviour {
 
 		//Ctrl to focus the light
 		if (!focused && Input.GetKeyDown (KeyCode.LeftControl)) {
-			CurrentTorchLight.ConeAngle /= 3f;
-			CurrentTorchLight.Intensity *= 1.3f;
-			CurrentTorchLight.DimmingDistance *= 2f;
+			torches[leftHand].light.ConeAngle /= 3f;
+			torches[leftHand].light.Intensity *= 1.3f;
+			torches[leftHand].light.DimmingDistance *= 2f;
 			focused = true;
 		} else if (focused && Input.GetKeyUp(KeyCode.LeftControl)) {
-			CurrentTorchLight.ConeAngle *= 3f;
-			CurrentTorchLight.Intensity /= 1.3f;
-			CurrentTorchLight.DimmingDistance /= 2f;
+			torches[leftHand].light.ConeAngle *= 3f;
+			torches[leftHand].light.Intensity /= 1.3f;
+			torches[leftHand].light.DimmingDistance /= 2f;
 			focused = false;
 		}
 
