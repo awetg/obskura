@@ -24,10 +24,12 @@ public abstract class Item : MonoBehaviour {
 		foreach (GameObject playerObj in players) {
 			Player player = playerObj.GetComponent<Player> ();
 
-			if (player != null && player.IsPressingUseKey ()) {
-				Action (player);
-				triggered = true;
-				rechargeAt = Time.time + TriggerRechargeAfter;
+			if (player != null){
+				if (!TriggerOnlyOnUse || (TriggerOnlyOnUse && player.IsPressingUseKey())) {
+					Action (player);
+					triggered = true;
+					rechargeAt = Time.time + TriggerRechargeAfter;
+				}
 			}
 		}
 

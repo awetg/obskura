@@ -21,8 +21,8 @@ public class Player : MonoBehaviour {
 	private bool usePressed = false;
 	private Vector3 destination;
 
-	public LeftHandTool leftHand = LeftHandTool.TORCH;
-	public RightHandTool rightHand = RightHandTool.PLASMAGUN;
+	public LeftHandTool leftHand = LeftHandTool.NULL;
+	public RightHandTool rightHand = RightHandTool.NULL;
 	private Dictionary<LeftHandTool, Tool> torches = new Dictionary<LeftHandTool, Tool> ();
 	private Dictionary<RightHandTool, Tool> guns = new Dictionary<RightHandTool, Tool> ();
 
@@ -30,10 +30,14 @@ public class Player : MonoBehaviour {
 	private float resetCameraAfter = 3;
 	private float cameraDamage = 0;
 	private bool focused = false;
+	//private bool inStrongLight = false;
+	private const float outOfLightAfter = 0.5f;
+	private float outOfLightAt = 0.0f;
 
 	public OGun PlayerLaser;
 
 	//Set the implementations of the tools in the inspectors
+	public OLight SurroundLight;
 	public OLight TorchLight;
 	public OLight UVLight;
 	public OLight NightVision;
@@ -67,8 +71,8 @@ public class Player : MonoBehaviour {
 		guns.Add(RightHandTool.PLASMAGUN, new Tool("PlasmaGun", gun : PlasmaGun));
 
 		//Give the torch and gun to the player (for testing)
-		SetLeftHand (LeftHandTool.TORCH);
-		SetRightHand (RightHandTool.PLASMAGUN);
+		//SetLeftHand (LeftHandTool.TORCH);
+		//SetRightHand (RightHandTool.PLASMAGUN);
 	}
 
 	void Update()
@@ -77,11 +81,8 @@ public class Player : MonoBehaviour {
 		rotate = Quaternion.LookRotation(transform.position - mousePosition, Vector3.forward);	//used to represent rotation
 		transform.rotation = rotate;	// player rotate to "rotate" value
 
-		//Rotate the current torch to face in tthe same direction as the player
-		if (torches.ContainsKey(leftHand) && torches[leftHand].light != null) {
-			torches[leftHand].light.Position = new Vector2 (transform.position.x, transform.position.y + 0.3f);
-			torches[leftHand].light.Direction = (transform.eulerAngles.z + 90) * Mathf.Deg2Rad;
-		}
+
+		SurroundLight.Position = new Vector2 (transform.position.x, transform.position.y);
 
 		transform.eulerAngles = new Vector3(0,0,transform.eulerAngles.z);	//used to prevent rotation on z-axis when mouse out side of play screen
 
@@ -96,7 +97,8 @@ public class Player : MonoBehaviour {
 		}
 
 		//Shoot at right click if the player has a gun and the gun exists and is selected
-		if (Input.GetKeyDown(KeyCode.Space) && guns.ContainsKey(rightHand) && guns[rightHand].gun != null) 	
+		if (Input.GetKeyDown(KeyCode.Space) && guns.ContainsKey(rightHand) 
+			&& guns[rightHand].gun != null && guns[rightHand].inInventory) 	
 		{
 			guns[rightHand].gun.Fire (transform.position, mousePosition);
 		}
@@ -106,20 +108,30 @@ public class Player : MonoBehaviour {
 				
 		if (Input.GetKeyUp (KeyCode.E))
 			usePressed = false;
-		
-		//Ctrl to focus the light
-		if (!focused && Input.GetKeyDown (KeyCode.LeftControl)) {
-			torches[leftHand].light.ConeAngle /= 3f;
-			torches[leftHand].light.Intensity *= 1.3f;
-			torches[leftHand].light.DimmingDistance *= 2f;
-			focused = true;
-		} else if (focused && Input.GetKeyUp(KeyCode.LeftControl)) {
-			torches[leftHand].light.ConeAngle *= 3f;
-			torches[leftHand].light.Intensity /= 1.3f;
-			torches[leftHand].light.DimmingDistance /= 2f;
-			focused = false;
-		}
 
+		//Rotate the current torch to face in tthe same direction as the player
+		if (torches.ContainsKey (leftHand) && torches [leftHand].light != null) {
+			torches [leftHand].light.Position = new Vector2 (transform.position.x, transform.position.y + 0.3f);
+			torches [leftHand].light.Direction = (transform.eulerAngles.z + 90) * Mathf.Deg2Rad;
+		
+			if (Input.GetKeyDown (KeyCode.T))
+				torches [leftHand].light.IsOn = !torches [leftHand].light.IsOn;
+		
+			//Ctrl to focus the light
+			if (!focused && Input.GetKeyDown (KeyCode.LeftControl)) {
+				torches [leftHand].light.ConeAngle /= 3f;
+				torches [leftHand].light.Intensity *= 1.3f;
+				torches [leftHand].light.DimmingDistance *= 2f;
+				torches [leftHand].light.DamagePerSecond *= 1.5f;
+				focused = true;
+			} else if (focused && Input.GetKeyUp (KeyCode.LeftControl)) {
+				torches [leftHand].light.ConeAngle *= 3f;
+				torches [leftHand].light.Intensity /= 1.3f;
+				torches [leftHand].light.DimmingDistance /= 2f;
+				torches [leftHand].light.DamagePerSecond /= 1.5f;
+				focused = false;
+			}
+		}
 		//Red overlay when the player gets hurt
 		if (resetCameraAt > Time.time) {
 			float proportion = (resetCameraAt - Time.time) / resetCameraAfter;
@@ -173,17 +185,19 @@ public class Player : MonoBehaviour {
 
 	public void CollectTool(LeftHandTool torch = LeftHandTool.NULL, RightHandTool gun = RightHandTool.NULL){
 		if (gun != RightHandTool.NULL && guns.ContainsKey(gun)) {
-			guns [gun].SetInInventory ();
+			guns [gun] = guns[gun].SetInInventory();
+			SetRightHand (gun);
 		}
 		if (torch != LeftHandTool.NULL && torches.ContainsKey(torch)) {
-			torches [torch].SetInInventory();
+			torches[torch] = torches [torch].SetInInventory();
+			SetLeftHand (torch);
 		}
 	}
 
 
 	public void SetLeftHand(LeftHandTool item){
 		if (item != leftHand) {	//do only if new_weapon is different from currentWeapon
-			leftHand = item;
+			ChangeTorch(item);
 		}
 	}
 
@@ -217,12 +231,22 @@ public class Player : MonoBehaviour {
 		}	
 	}
 
+	public void SetInStrongLight(){
+		outOfLightAt = Time.time + outOfLightAfter;
+	}
+
 	public bool IsAlive(){
 		return (hp > 0);
 	}
 
 	public bool IsPressingUseKey(){
 		return usePressed;
+	}
+
+	public bool IsInStrongLight(){
+		if (Time.time > outOfLightAt)
+			return false;
+		return true;
 	}
 
 	public float GetHP(){
@@ -241,6 +265,20 @@ public class Player : MonoBehaviour {
 		return "";
 	}
 
+	public void ChangeTorch(LeftHandTool item){
+		if (leftHand != LeftHandTool.NULL && torches.ContainsKey (leftHand) && torches [leftHand].inInventory) {
+			torches [leftHand].light.IsOn = false;
+		}
+		
+		leftHand = item;
+
+		if (item != LeftHandTool.NULL && torches.ContainsKey (item) && torches [item].inInventory) {
+			torches [item].light.IsOn = true;
+		}
+		else
+			leftHand = LeftHandTool.NULL;
+	}
+
 	private struct Tool
 	{
 		public OLight light;
@@ -255,13 +293,10 @@ public class Player : MonoBehaviour {
 			this.inInventory = inInventory;
 		}
 
-		public bool IsInInventory(){
-			return inInventory;
+		public Tool SetInInventory(bool value = true){
+			return new Tool (name, light, gun, value);
 		}
 
-		public void SetInInventory(bool inInventory = true){
-			this.inInventory = inInventory;
-		}
 	}
 
 }

@@ -70,6 +70,7 @@ public class Hades : Enemy, ICollidableActor2D
 		MynavMeshAgent.acceleration = MynavMeshAgent.speed * 100;
 		MynavMeshAgent.isStopped = false;
 		MynavMeshAgent.SetDestination (startNode.GetPosition ());
+		EnemyAnimator.SetBool ("Attack", false);
 	}
 
 	void ContinuePath(){
@@ -92,33 +93,33 @@ public class Hades : Enemy, ICollidableActor2D
 
 	void StartChase(){	
 		MynavMeshAgent.speed = chaseSpeed;	//increase speed
-		MynavMeshAgent.acceleration = MynavMeshAgent.speed / 4;
+		MynavMeshAgent.acceleration = MynavMeshAgent.speed / 2;
 		MynavMeshAgent.isStopped=false;	//resume Movement with icreased speed
 		//EnemyAnimator.SetFloat("Run",1.2f);
 		EnemyAnimator.SetFloat("Run",0.0f);
+		EnemyAnimator.SetBool ("Attack", false);
 		endChaseTime = Time.time + chaseTime;
 	}
 
 	void ContinueChase(){	
 
 		float speed = MynavMeshAgent.velocity.magnitude;
+		bool playerUnsafe = !isPlayerInStrongLight();
 		//float speedProportion = speed / chaseSpeed;
 
-		if (isPlayerInSight (chaseRange)) {
+		if (isPlayerInSight (chaseRange) && playerUnsafe) {
 			endChaseTime = Time.time + chaseTime;
 		}
 
 		FaceForward ();
 
-		if (speed < 4f) {
+		if (speed < 4f && playerUnsafe) {
 			EnemyAnimator.SetFloat ("Run", 0.0f);
 			EnemyAnimator.speed = speed / 2.0f;
-		} else {
-			Debug.Log ("Running");
+		} else if (playerUnsafe) {
 			EnemyAnimator.SetFloat ("Run", 1.2f);
 			EnemyAnimator.speed = 2.0f + (speed - 4f)*0.1f;
 		}
-
 
 		/*if (speedProportion < 0.5F) {
 			Debug.Log (speed);
@@ -132,7 +133,7 @@ public class Hades : Enemy, ICollidableActor2D
 			EnemyAnimator.speed = 1.0F;
 		}*/
 
-		if (Time.time < endChaseTime && target) {
+		if (Time.time < endChaseTime && target && playerUnsafe) {
 			if (Vector3.Distance (target.position, transform.position) < attackRange) {
 				EnemyAnimator.speed = 1.0F;
 				SetState (EnemyState.ATTACK);
@@ -144,9 +145,11 @@ public class Hades : Enemy, ICollidableActor2D
 		else {
 			Vector3 backToNode = startNode.transform.position;
 			MynavMeshAgent.SetDestination (backToNode);
+			EnemyAnimator.SetBool ("Attack", false);
 			EnemyAnimator.SetFloat ("Run", 0.0f);
-			SetState (EnemyState.IDLE);			
+			SetState (EnemyState.IDLE);	
 		}
+			
 	}
 
 	void EndChase(){	
@@ -162,10 +165,10 @@ public class Hades : Enemy, ICollidableActor2D
 	}
 
 	void ContinueAttack(){
+		FaceTarget ();
 		if (target && Vector3.Distance (target.position, transform.position) <= attackRange) {
 			target.GetComponent<Player> ().DamagePlayer (damagePerSecond * Time.deltaTime);
 			endAttackTime = Time.time + attackTime;
-			FaceTarget ();
 		} 
 		else if (Time.time > endAttackTime) {
 			EnemyAnimator.SetBool ("Attack", false);

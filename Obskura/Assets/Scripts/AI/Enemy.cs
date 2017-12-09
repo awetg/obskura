@@ -31,7 +31,8 @@ public abstract class Enemy : MonoBehaviour {
 	public Animator EnemyAnimator;	//for enemy animation
 	private EnemyState currentState = EnemyState.NONE;	//needed variable for control of states
 	public EnemyState startState = EnemyState.IDLE;	//can be made public to choose from INSPECTOR
-	public Transform target;
+	protected Transform target;
+	private Player targetPlayer;
 
 	protected Dictionary<EnemyState, EnemyBehaviour> states = new Dictionary<EnemyState, EnemyBehaviour> ();
 
@@ -65,6 +66,7 @@ public abstract class Enemy : MonoBehaviour {
 	protected virtual void Start () {
 		SetState(startState);	//set state to idle from none
 		target = GameObject.FindGameObjectWithTag("Player").transform;
+		targetPlayer = target.GetComponent<Player> ();
 		Tags.CacheAdd (gameObject);
 	}
 	
@@ -110,11 +112,19 @@ public abstract class Enemy : MonoBehaviour {
 		//FIXME: Implement in the future
 	}
 
+	protected bool isPlayerInStrongLight(){
+		if (target) {
+			return targetPlayer.IsInStrongLight ();
+		}
+		return false;
+	}
+
 	protected bool isPlayerInSight(float sightDistance){
 		if (target) {
 			float minDistance = Vector3.Distance (target.position, transform.position);
 			if (Geometry.IsInLineOfSight (target.position, transform.position) && minDistance < sightDistance) {
-				return true;
+				if (!isPlayerInStrongLight())
+					return true;
 			}
 		}
 		return false;

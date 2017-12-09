@@ -45,7 +45,7 @@ public class OLight : MonoBehaviour {
 	public Color LightColor = new Color(1.0F, 1.0F, 1.0F);
 	public float Intensity = defaultIntensity;
 	public float DimmingDistance = 1.0F;
-	public float DamagePerSecond = defaultIntensity * 100F;
+	public float DamagePerSecond = defaultIntensity * 10F;
 	public bool IsStrong = false;
 	public bool IsOn = true;
 	public float FireProbabilityPerSecond = 0F;
@@ -353,6 +353,8 @@ public class OLight : MonoBehaviour {
 
 		InflictDamages ();
 
+		SearchForPlayer ();
+
 		if (Static) {
 			Mouse = false;
 			if (computed)
@@ -462,6 +464,32 @@ public class OLight : MonoBehaviour {
 				//Debug.Log ("Inflicted Damage " + damage + " to " + enemy.name);
 
 				enemy.GetDamaged (damage);
+			}
+		}
+	}
+
+	void SearchForPlayer(){
+
+		if (!IsStrong)
+			return;
+
+		var objs = Tags.CachedGameObjectsWithTagInRange ("Player", transform.position, DimmingDistance * maximumDistanceFactor);
+
+		foreach (GameObject obj in objs) {
+			Player player = obj.GetComponent<Player>();
+
+			if (player != null && player.transform != null) {
+				Vector2 playerPos = new Vector2 (player.transform.position.x, player.transform.position.y);
+
+				if (!PointIsInLight (playerPos))
+					return;
+
+				Vector2 lightPos = new Vector2 (transform.position.x, transform.position.y);
+				Vector2 diff = playerPos - lightPos;
+				float dist = diff.magnitude;
+
+				if (dist < DimmingDistance)
+					player.SetInStrongLight ();
 			}
 		}
 	}
