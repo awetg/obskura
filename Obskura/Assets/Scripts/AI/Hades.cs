@@ -52,6 +52,13 @@ public class Hades : Enemy, ICollidableActor2D
 		MynavMeshAgent.updateRotation = false;
 	}
 
+	public override void Alert (EnemyAlert type)
+	{
+		base.Alert (type);
+		//If the player alerted the enemy, extend the chase range to three times normal
+		chaseIfInSight (chaseRange * 3);
+	}
+
 	protected override void Die() {
 		base.Die ();
 		EnemyAnimator.Play("HadesDeath");

@@ -32,9 +32,9 @@ public class MouseDebug : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		Vector3 pos = Camera.main.ScreenToWorldPoint (new Vector3 (Input.mousePosition.x, Input.mousePosition.y, 10));
+		//Vector3 pos = Camera.main.ScreenToWorldPoint (new Vector3 (Input.mousePosition.x, Input.mousePosition.y, 10));
 		//Debug.Log (Geometry.IsPointInAWall (pos));
-		Debug.Log (torch.PointIsInLight(pos));
+		//Debug.Log (torch.PointIsInLight(pos));
 		//Debug.Log (Geometry.IsInLineOfSight (new Vector3(0,0,0), pos));
 	
 	}

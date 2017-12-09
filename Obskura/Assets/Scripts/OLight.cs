@@ -351,6 +351,8 @@ public class OLight : MonoBehaviour {
 			isEnabled = true;
 		}
 
+		InflictDamages ();
+
 		if (Static) {
 			Mouse = false;
 			if (computed)
@@ -431,8 +433,11 @@ public class OLight : MonoBehaviour {
 
 
 	void InflictDamages(){
-		
-		var objs = Tags.GameObjectsWithTag (damageTag);
+
+		if (DamagePerSecond <= 0f)
+			return;
+
+		var objs = Tags.CachedGameObjectsWithTagInRange (damageTag, transform.position, DimmingDistance * maximumDistanceFactor);
 
 		foreach (GameObject obj in objs) {
 			Enemy enemy = obj.GetComponent<Enemy>();

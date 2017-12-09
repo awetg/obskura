@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.AI;
 
 public enum EnemyState{IDLE,CHASE,ATTACK,DEAD,NONE}	//describes what state the enemy is on
+public enum EnemyAlert{GENERIC,LIGHT,DAMAGE}
 public delegate void StateFunction();
 
 public struct EnemyBehaviour {
@@ -64,6 +65,7 @@ public class Enemy : MonoBehaviour {
 	protected virtual void Start () {
 		SetState(startState);	//set state to idle from none
 		target = GameObject.FindGameObjectWithTag("Player").transform;
+		Tags.CacheAdd (gameObject);
 	}
 	
 	// Update is called once per frame
@@ -86,7 +88,10 @@ public class Enemy : MonoBehaviour {
 			destroy = true;
 		}
 		SetState (EnemyState.DEAD);
+		Tags.CacheRemove (gameObject);
 	}
+
+	public virtual void Alert (EnemyAlert type){}
 
 	/// <summary>
 	/// Sets the state of the enemy, callled in start() method to set from NONE to IDLE at first
@@ -122,10 +127,12 @@ public class Enemy : MonoBehaviour {
 
 	public void GetDamaged(float damage){
 		enemyHp -= damage;
+		Alert (EnemyAlert.DAMAGE);
 	}
 
 	public void GetDamagedByLight(float damage){
 		enemyHp -= damage;
+		Alert (EnemyAlert.LIGHT);
 	}
 
 	protected void FaceTarget(){
