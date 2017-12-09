@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public enum RightHandItem{PLASMAGUN,NULL}	//items, will also be accessed from Gamecontroller
-public enum LeftHandItem{TORCH, UVTORCH, NIGHTVISION, NULL}
+public enum RightHandTool{PLASMAGUN,NULL}	//items, will also be accessed from Gamecontroller
+public enum LeftHandTool{TORCH, UVTORCH, NIGHTVISION, NULL}
 
 public class Player : MonoBehaviour {
 
 
-
+	public float Money = 0.0F;
 	public float speed;
 	private Quaternion rotate;
 	private Rigidbody2D MyRigidbody;
@@ -18,12 +18,13 @@ public class Player : MonoBehaviour {
 	private Vector3 target;		//used to get mouse position as vector3 in Move() method, vector2 can't take 3 argument so can't be used
 	public float TargetStopDistance = 0.5F;		//How far player have to stop before reaching mouse position, small value is needed here
 	private bool moving = false;	//used to stop player/or stop calling Move() method, when stopDistance is reached
+	private bool usePressed = false;
 	private Vector3 destination;
 
-	public LeftHandItem leftHand = LeftHandItem.TORCH;
-	public RightHandItem rightHand = RightHandItem.PLASMAGUN;
-	private Dictionary<LeftHandItem, Tool> torches = new Dictionary<LeftHandItem, Tool> ();
-	private Dictionary<RightHandItem, Tool> guns = new Dictionary<RightHandItem, Tool> ();
+	public LeftHandTool leftHand = LeftHandTool.TORCH;
+	public RightHandTool rightHand = RightHandTool.PLASMAGUN;
+	private Dictionary<LeftHandTool, Tool> torches = new Dictionary<LeftHandTool, Tool> ();
+	private Dictionary<RightHandTool, Tool> guns = new Dictionary<RightHandTool, Tool> ();
 
 	private float resetCameraAt = 0;
 	private float resetCameraAfter = 3;
@@ -53,19 +54,21 @@ public class Player : MonoBehaviour {
 		var camera = GameObject.FindGameObjectWithTag ("MainCamera");
 		lightManager = camera.GetComponent<OLightManager> ();
 
+		Tags.CacheAdd (gameObject);
+
 		MyRigidbody = GetComponent<Rigidbody2D>();
 		PlayerAnimator = GetComponent<Animator> ();
 		PlayerAnimator.SetBool("move", false);
 		//		Screen.lockCursor = true;
 
-		torches.Add(LeftHandItem.TORCH, new Tool("Torch", light : TorchLight));
-		torches.Add(LeftHandItem.UVTORCH, new Tool("UVTorch", light : UVLight));
-		torches.Add(LeftHandItem.NIGHTVISION, new Tool("NightVision", light : NightVision));
-		guns.Add(RightHandItem.PLASMAGUN, new Tool("PlasmaGun", gun : PlasmaGun));
+		torches.Add(LeftHandTool.TORCH, new Tool("Torch", light : TorchLight));
+		torches.Add(LeftHandTool.UVTORCH, new Tool("UVTorch", light : UVLight));
+		torches.Add(LeftHandTool.NIGHTVISION, new Tool("NightVision", light : NightVision));
+		guns.Add(RightHandTool.PLASMAGUN, new Tool("PlasmaGun", gun : PlasmaGun));
 
 		//Give the torch and gun to the player (for testing)
-		SetLeftHand (LeftHandItem.TORCH);
-		SetRightHand (RightHandItem.PLASMAGUN);
+		SetLeftHand (LeftHandTool.TORCH);
+		SetRightHand (RightHandTool.PLASMAGUN);
 	}
 
 	void Update()
@@ -98,6 +101,12 @@ public class Player : MonoBehaviour {
 			guns[rightHand].gun.Fire (transform.position, mousePosition);
 		}
 
+		if (Input.GetKeyDown (KeyCode.E))
+			usePressed = true;
+				
+		if (Input.GetKeyUp (KeyCode.E))
+			usePressed = false;
+		
 		//Ctrl to focus the light
 		if (!focused && Input.GetKeyDown (KeyCode.LeftControl)) {
 			torches[leftHand].light.ConeAngle /= 3f;
@@ -116,7 +125,7 @@ public class Player : MonoBehaviour {
 			float proportion = (resetCameraAt - Time.time) / resetCameraAfter;
 
 			if (lightManager != null) {
-				lightManager.Overlay = new Color ((proportion * cameraDamage) % 1.0F, 0, 0);
+				lightManager.Overlay = new Color (Mathf.Min((proportion * cameraDamage), 1.0F), 0, 0);
 			}
 		} else if (resetCameraAt < Time.time) {
 			cameraDamage = 0;
@@ -162,36 +171,36 @@ public class Player : MonoBehaviour {
 		}
 	}
 
-	public void CollectTool(LeftHandItem torch = LeftHandItem.NULL, RightHandItem gun = RightHandItem.NULL){
-		if (gun != RightHandItem.NULL && guns.ContainsKey(gun)) {
+	public void CollectTool(LeftHandTool torch = LeftHandTool.NULL, RightHandTool gun = RightHandTool.NULL){
+		if (gun != RightHandTool.NULL && guns.ContainsKey(gun)) {
 			guns [gun].SetInInventory ();
 		}
-		if (torch != LeftHandItem.NULL && torches.ContainsKey(torch)) {
+		if (torch != LeftHandTool.NULL && torches.ContainsKey(torch)) {
 			torches [torch].SetInInventory();
 		}
 	}
 
 
-	public void SetLeftHand(LeftHandItem item){
+	public void SetLeftHand(LeftHandTool item){
 		if (item != leftHand) {	//do only if new_weapon is different from currentWeapon
 			leftHand = item;
 		}
 	}
 
-	public void SetRightHand(RightHandItem item){
+	public void SetRightHand(RightHandTool item){
 		if (item != rightHand)
 			rightHand = item;
 	}
 
-	public void DamagePlayer(float coming_hp){
+	public void DamagePlayer(float damage){
 
-		hp = hp - coming_hp;
+		hp = hp - damage;
 		//NOTE: The controller should command to write the player's hp to screen
 		//GameController.ShowDamage (hp);	//send hp to screen, only player hp get displayed
 
 		if (lightManager != null) {
-			cameraDamage += coming_hp / 30.0f;
-			lightManager.Overlay =  new Color(cameraDamage % 1.0F, 0, 0);
+			cameraDamage += damage / 20.0f;
+			lightManager.Overlay =  new Color(Mathf.Min(cameraDamage, 1.0F), 0, 0);
 			resetCameraAt = Time.time + resetCameraAfter;
 		}
 
@@ -201,6 +210,8 @@ public class Player : MonoBehaviour {
 			this.enabled = false;
 			gameObject.GetComponent<BoxCollider2D> ().enabled = false;
 			CancelInvoke ();
+			Tags.CacheRemove (gameObject);
+			lightManager.Overlay = new Color (0, 0, 0);
 			Destroy (gameObject);
 
 		}	
@@ -210,18 +221,22 @@ public class Player : MonoBehaviour {
 		return (hp > 0);
 	}
 
+	public bool IsPressingUseKey(){
+		return usePressed;
+	}
+
 	public float GetHP(){
 		return hp;
 	}
 
 	public string GetLeftHandItemName(){	
-		if (leftHand != LeftHandItem.NULL && torches.ContainsKey (leftHand))
+		if (leftHand != LeftHandTool.NULL && torches.ContainsKey (leftHand))
 			return torches [leftHand].name;
 		return "";
 	}
 
 	public string GetRightHandItemName(){	
-		if (rightHand != RightHandItem.NULL && torches.ContainsKey (leftHand))
+		if (rightHand != RightHandTool.NULL && torches.ContainsKey (leftHand))
 			return guns [rightHand].name;
 		return "";
 	}

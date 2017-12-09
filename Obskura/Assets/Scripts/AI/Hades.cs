@@ -5,17 +5,17 @@ public class Hades : Enemy, ICollidableActor2D
 {
 	public float chaseTime = 10f;	//how long enemy chase player after detection
 	public float chaseRange = 15f;	//how far away can the enemy see the player	
-	//public float attackTime = 1f;
+	public float attackTime = 0.5f;
 	public float attackRange = 1f;
 
 	public float idleSpeed = 1.0f;
-	public float chaseSpeed = 1.5f;	//how long enemy chase player after detection
+	public float chaseSpeed = 10f;	//how long enemy chase player after detection
 	//public Animator EnemyAnimator;	//for enemy animation
 	public NavMeshAgent MynavMeshAgent;
 	public EnemyPath startNode;		//start node to move until enemy detection, set in INSPECTOR
 
 	private float endChaseTime = 0;
-	//private float endAttackTime = 0;
+	private float endAttackTime = 0;
 
 	// Use this for initialization
 	protected override void Start () {
@@ -36,7 +36,7 @@ public class Hades : Enemy, ICollidableActor2D
 		states.Add (EnemyState.IDLE, new EnemyBehaviour (StartPath, ContinuePath, EndPath));
 		states.Add (EnemyState.CHASE, new EnemyBehaviour (StartChase, ContinueChase, EndChase));
 		states.Add (EnemyState.ATTACK, new EnemyBehaviour (StartAttack, ContinueAttack, EndAttack));
-		states.Add (EnemyState.DEAD, new EnemyBehaviour (DeadState, None, None));
+		states.Add (EnemyState.DEAD, new EnemyBehaviour (DeadState, DeadStateUpdate, None));
 
 		base.Start ();
 	}
@@ -66,6 +66,8 @@ public class Hades : Enemy, ICollidableActor2D
 		
 	void StartPath(){	
 		MynavMeshAgent.speed = idleSpeed;
+		EnemyAnimator.speed = 1.0F;
+		MynavMeshAgent.acceleration = MynavMeshAgent.speed * 100;
 		MynavMeshAgent.isStopped = false;
 		MynavMeshAgent.SetDestination (startNode.GetPosition ());
 	}
@@ -90,18 +92,51 @@ public class Hades : Enemy, ICollidableActor2D
 
 	void StartChase(){	
 		MynavMeshAgent.speed = chaseSpeed;	//increase speed
+		MynavMeshAgent.acceleration = MynavMeshAgent.speed / 4;
 		MynavMeshAgent.isStopped=false;	//resume Movement with icreased speed
-		EnemyAnimator.SetFloat("Run",1.2f);
+		//EnemyAnimator.SetFloat("Run",1.2f);
+		EnemyAnimator.SetFloat("Run",0.0f);
 		endChaseTime = Time.time + chaseTime;
 	}
 
 	void ContinueChase(){	
 
+		float speed = MynavMeshAgent.velocity.magnitude;
+		//float speedProportion = speed / chaseSpeed;
+
+		if (isPlayerInSight (chaseRange)) {
+			endChaseTime = Time.time + chaseTime;
+		}
+
 		FaceForward ();
 
+		if (speed < 4f) {
+			EnemyAnimator.SetFloat ("Run", 0.0f);
+			EnemyAnimator.speed = speed / 2.0f;
+		} else {
+			Debug.Log ("Running");
+			EnemyAnimator.SetFloat ("Run", 1.2f);
+			EnemyAnimator.speed = 2.0f + (speed - 4f)*0.1f;
+		}
+
+
+		/*if (speedProportion < 0.5F) {
+			Debug.Log (speed);
+			EnemyAnimator.SetFloat ("Run", 0.0f);
+			EnemyAnimator.speed = speed;
+		} else if (speedProportion < 0.8F) {
+			EnemyAnimator.SetFloat ("Run", 1.2f);
+			EnemyAnimator.speed = speedProportion + 0.2F;
+		} else {
+			EnemyAnimator.SetFloat ("Run", 1.2f);
+			EnemyAnimator.speed = 1.0F;
+		}*/
+
 		if (Time.time < endChaseTime && target) {
-			if (Vector3.Distance (target.position, transform.position) < attackRange)
+			if (Vector3.Distance (target.position, transform.position) < attackRange) {
+				EnemyAnimator.speed = 1.0F;
 				SetState (EnemyState.ATTACK);
+			}
 			else {
 				MynavMeshAgent.SetDestination (target.position);
 			}
@@ -118,20 +153,21 @@ public class Hades : Enemy, ICollidableActor2D
 	}
 
 	void StartAttack(){
+		FaceTarget ();
 		MynavMeshAgent.isStopped=true;	//stop enemy movement to do attack
 		MynavMeshAgent.velocity = Vector3.zero;
 		EnemyAnimator.SetBool ("Attack", true);
-		target.GetComponent<PlayerMovement> ().DamagePlayer (damagePerSecond * Time.deltaTime);
-		//endAttackTime = Time.time + attackTime;
+		target.GetComponent<Player> ().DamagePlayer (damagePerSecond * Time.deltaTime);
+		endAttackTime = Time.time + attackTime;
 	}
 
 	void ContinueAttack(){
 		if (target && Vector3.Distance (target.position, transform.position) <= attackRange) {
-			target.GetComponent<PlayerMovement> ().DamagePlayer (damagePerSecond * Time.deltaTime);
-				FaceTarget ();
-				//endAttackTime = Time.time + attackTime;
+			target.GetComponent<Player> ().DamagePlayer (damagePerSecond * Time.deltaTime);
+			endAttackTime = Time.time + attackTime;
+			FaceTarget ();
 		} 
-		else {
+		else if (Time.time > endAttackTime) {
 			EnemyAnimator.SetBool ("Attack", false);
 			SetState (EnemyState.CHASE);
 		}	
@@ -141,8 +177,14 @@ public class Hades : Enemy, ICollidableActor2D
 	}
 
 	void DeadState(){
-		MynavMeshAgent.isStopped=true;	//stop enemy movement to do attack
+		FaceForward ();
+		MynavMeshAgent.enabled = false;
+		MynavMeshAgent.isStopped = true;	//stop enemy movement to do attack
 		MynavMeshAgent.velocity = Vector3.zero;
+	}
+
+	void DeadStateUpdate(){
+		//FaceTarget ();
 	}
 
 	void FaceForward(){

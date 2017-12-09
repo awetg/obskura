@@ -24,7 +24,7 @@ public struct EnemyBehaviour {
 	}
 }
 
-public class Enemy : MonoBehaviour {
+public abstract class Enemy : MonoBehaviour {
 	
 	public float enemyHp = 0;
 	public float damagePerSecond = 0;
@@ -110,7 +110,7 @@ public class Enemy : MonoBehaviour {
 		//FIXME: Implement in the future
 	}
 
-	bool isPlayerInSight(float sightDistance){
+	protected bool isPlayerInSight(float sightDistance){
 		if (target) {
 			float minDistance = Vector3.Distance (target.position, transform.position);
 			if (Geometry.IsInLineOfSight (target.position, transform.position) && minDistance < sightDistance) {
