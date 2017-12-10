@@ -387,6 +387,33 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!84 &376719269
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_Width: 814
+  m_Height: 301
+  m_AntiAliasing: 1
+  m_DepthFormat: 2
+  m_ColorFormat: 0
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 0
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
 --- !u!1 &391243716
 GameObject:
   m_ObjectHideFlags: 0
@@ -634,7 +661,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &466716827
 Transform:
   m_ObjectHideFlags: 0
@@ -731,17 +758,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyHp: 0
-  damagePerSecond: 0
+  damagePerSecond: 50
   EnemyAnimator: {fileID: 0}
   startState: 0
   chaseTime: 10
-  centrePosition: {x: 0, y: 0, z: 0}
+  centerPosition: {x: 0, y: 0, z: 0}
   minTime: 1
   maxTime: 3
   maxDistance: 3
   chasingSpeed: 0.5
   sightDistance: 50
-  attackRange: 2
+  attackRange: 3
 --- !u!1 &525072280
 GameObject:
   m_ObjectHideFlags: 0
@@ -882,7 +909,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 1024
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 663288690}
+  m_TargetTexture: {fileID: 376719269}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -1221,33 +1248,6 @@ MonoBehaviour:
   NightVision: {fileID: 0}
   CurrentTorchLight: {fileID: 0}
   PlasmaGun: {fileID: 1318759165}
---- !u!84 &663288690
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_Width: 814
-  m_Height: 301
-  m_AntiAliasing: 1
-  m_DepthFormat: 2
-  m_ColorFormat: 0
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 0
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
 --- !u!1 &687186258
 GameObject:
   m_ObjectHideFlags: 0
@@ -1385,6 +1385,33 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 13
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!84 &717697952
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_Width: 814
+  m_Height: 301
+  m_AntiAliasing: 1
+  m_DepthFormat: 2
+  m_ColorFormat: 0
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 0
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
 --- !u!1 &775887929
 GameObject:
   m_ObjectHideFlags: 0
@@ -1724,12 +1751,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: fbcb4c9c6d00e0f4fb80fff0cbd40d65, type: 3}
+  m_Sprite: {fileID: 21300000, guid: def71ae8806624d0397e6bbdb0255042, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 5.83, y: 5.36}
+  m_Size: {x: 0.93, y: 1.17}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -2058,12 +2085,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: fbcb4c9c6d00e0f4fb80fff0cbd40d65, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 4822496c6032b4aa4ba5d5fe2f0e1133, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 5.83, y: 5.36}
+  m_Size: {x: 0.9, y: 1.28}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -2440,7 +2467,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 1031552520278368, guid: 6991c6335bac77a42b01e1a70fd14429, type: 2}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1685238079650324, guid: 6991c6335bac77a42b01e1a70fd14429, type: 2}
       propertyPath: m_Name
@@ -2448,6 +2475,7 @@ Prefab:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 114912007895395746, guid: 6991c6335bac77a42b01e1a70fd14429, type: 2}
+    - {fileID: 114688359053445638, guid: 6991c6335bac77a42b01e1a70fd14429, type: 2}
   m_ParentPrefab: {fileID: 100100000, guid: 6991c6335bac77a42b01e1a70fd14429, type: 2}
   m_IsPrefabParent: 0
 --- !u!1 &1747123513
@@ -2676,7 +2704,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 32
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 2065122583}
+  m_TargetTexture: {fileID: 717697952}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -3156,33 +3184,6 @@ Transform:
   m_Father: {fileID: 1333614697}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!84 &2065122583
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_Width: 814
-  m_Height: 301
-  m_AntiAliasing: 1
-  m_DepthFormat: 2
-  m_ColorFormat: 0
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 0
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
 --- !u!1001 &2098722993
 Prefab:
   m_ObjectHideFlags: 0
@@ -3244,8 +3245,14 @@ Prefab:
       propertyPath: m_Name
       value: HadesSprite1
       objectReference: {fileID: 0}
+    - target: {fileID: 114688359053445638, guid: 6991c6335bac77a42b01e1a70fd14429,
+        type: 2}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 114912007895395746, guid: 6991c6335bac77a42b01e1a70fd14429, type: 2}
+    - {fileID: 114688359053445638, guid: 6991c6335bac77a42b01e1a70fd14429, type: 2}
   m_ParentPrefab: {fileID: 100100000, guid: 6991c6335bac77a42b01e1a70fd14429, type: 2}
   m_IsPrefabParent: 0
 --- !u!1 &2100647394

@@ -64,6 +64,7 @@ public abstract class Enemy : MonoBehaviour {
 
 	// Use this for initialization
 	protected virtual void Start () {
+		states.Add (EnemyState.NONE, new EnemyBehaviour (None, None, None));
 		SetState(startState);	//set state to idle from none
 		target = GameObject.FindGameObjectWithTag("Player").transform;
 		targetPlayer = target.GetComponent<Player> ();
@@ -145,13 +146,15 @@ public abstract class Enemy : MonoBehaviour {
 		Alert (EnemyAlert.LIGHT);
 	}
 
-	protected void FaceTarget(){
+	protected void FaceTarget(float offsetAngle = 0.0F){
 		Vector3 dir;
 		float angle;
-		dir = target.position-transform.position;
-		if (dir.magnitude > 0) {
-			angle = Mathf.Atan2 (dir.y, dir.x) * Mathf.Rad2Deg;
-			transform.eulerAngles = new Vector3 (0, 0, angle);
+		if (target) {
+			dir = target.position - transform.position;
+			if (dir.magnitude > 0) {
+				angle = (Mathf.Atan2 (dir.y, dir.x) + offsetAngle) * Mathf.Rad2Deg;
+				transform.eulerAngles = new Vector3 (0, 0, angle);
+			}
 		}
 	}
 
