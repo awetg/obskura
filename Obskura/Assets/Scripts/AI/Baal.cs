@@ -12,7 +12,6 @@ public class Baal : Enemy, ICollidableActor2D {
 	public float chaseTime = 10f;	//how long enemy chase player after detection
 
 	public Vector3 centerPosition;
-	private float nextTeleportTime=0;
 	public float minTime = 1;
 	public float maxTime =5;
 	public float maxDistance = 3;
@@ -22,7 +21,10 @@ public class Baal : Enemy, ICollidableActor2D {
 
 	private Vector3 originalPosition;
 
+	float nextTeleportTime=0;
+	float disableTeleportEffectAt=0;
 	float endChaseTime = 0;
+	bool isTeleportEffectOn = false;
 
 	// Use this for initialization
 	protected override void Start () {
@@ -52,6 +54,15 @@ public class Baal : Enemy, ICollidableActor2D {
 	//If the time delay for the next teleport has elapsed, try to teleport
 	void TeleportIfTime(){
 
+		//Play the effect if less than 0.3 seconds are left
+		if (!isTeleportEffectOn && nextTeleportTime - Time.time < 0.3f) {
+			TeleportEffect (true);
+			disableTeleportEffectAt = Time.time + 0.6f;
+		}
+
+		if (isTeleportEffectOn && Time.time > disableTeleportEffectAt)
+			TeleportEffect (false);
+
 		if (Time.time > nextTeleportTime) 
 		{	
 			System.Random rnd = new System.Random();
@@ -69,7 +80,7 @@ public class Baal : Enemy, ICollidableActor2D {
 				float dy = (float)rnd.NextDouble () * maxDistance;
 				newpos = centerPosition + new Vector3 (dx, dy, 0);
 				count += 1;
-			} while (Geometry.IsSquareInAWall (newpos, this.GetSize()));
+			} while (Geometry.IsPointInAWall(newpos) || Geometry.IsSquareInAWall (newpos, this.GetSize()));
 			//check for collisions
 			//...
 			transform.position = newpos;
@@ -81,7 +92,7 @@ public class Baal : Enemy, ICollidableActor2D {
 	}
 
 	void StartIdle(){	
-		
+		EnemyAnimator.Play ("BaalIdle");
 	}
 
 
@@ -172,6 +183,16 @@ public class Baal : Enemy, ICollidableActor2D {
 	void EndAttack(){
 	}
 		
+
+	private void TeleportEffect(bool active){
+		foreach (Transform t in gameObject.transform) {
+			if (t.gameObject.name == "TeleportEffect")
+			{
+				isTeleportEffectOn = active;
+				t.gameObject.SetActive(active);
+			}
+		}
+	}
 
 	//*** ICollidableActor2D Implementation ***
 

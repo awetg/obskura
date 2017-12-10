@@ -40,6 +40,10 @@ public abstract class Enemy : MonoBehaviour {
 	private float destroyAt = 0f;
 	private bool destroy = false;
 
+	protected string showEffectInLight = "SmokeEffect";
+	bool isLightEffectPlaying = false;
+	float stopLightEffectAt = 0F;
+
 	protected void None() {
 		//Function for state "do nothing"
 	}
@@ -73,6 +77,10 @@ public abstract class Enemy : MonoBehaviour {
 	
 	// Update is called once per frame
 	protected virtual void Update () {
+
+		if (isLightEffectPlaying && Time.time > stopLightEffectAt) {
+			InLightEffect (false);
+		}
 
 		if (destroy && Time.time > destroyAt)
 			Destroy (gameObject);
@@ -142,6 +150,12 @@ public abstract class Enemy : MonoBehaviour {
 	}
 
 	public void GetDamagedByLight(float damage){
+		Debug.Log (damage);
+		if (!isLightEffectPlaying)
+			InLightEffect (true);
+		
+		stopLightEffectAt = Time.time + 0.5f;
+
 		enemyHp -= damage;
 		Alert (EnemyAlert.LIGHT);
 	}
@@ -165,5 +179,16 @@ public abstract class Enemy : MonoBehaviour {
 		transform.eulerAngles = new Vector3 (0, 0, angle);	
 	}
 
+	private void InLightEffect(bool active){
+		if (showEffectInLight != "") {
+			foreach (Transform t in gameObject.transform) {
+				if (t.gameObject.name == showEffectInLight) {
+					isLightEffectPlaying = active;
+					Debug.Log (active);
+					t.gameObject.SetActive (active);
+				}
+			}
+		}
+	}
 
 }
