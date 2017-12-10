@@ -179,7 +179,6 @@ public class PlayerMovement : MonoBehaviour {
 			gameObject.GetComponent<BoxCollider2D> ().enabled = false;
 			CancelInvoke ();
 			Destroy (gameObject);
-
 		}	
 	}
 
