@@ -8,9 +8,19 @@ public abstract class Item : MonoBehaviour {
 	public bool TriggerOnlyOnUse = false;
 	public float TriggerRechargeAfter = 1.0F;
 	public float TriggerDistance = 2.0F;
+	public Typer typer;
+	public string Message;
+	public Canvas dialogueBox;
 
 	bool triggered = false;
 	float rechargeAt = 0.0f;
+
+
+	void Start(){
+		dialogueBox.gameObject.SetActive (false);
+//		typer = GameObject.FindGameObjectWithTag ("Paper").GetComponent<Typer>();
+//		Debug.Log (typer.ToString ());
+	}
 
 	// Update is called once per frame
 	protected void Update () {
@@ -38,5 +48,17 @@ public abstract class Item : MonoBehaviour {
 
 	}
 
-	protected abstract void Action (Player player);
+	protected virtual void Action (Player player){
+		if (Message != ""){
+			dialogueBox.gameObject.SetActive (true);
+			typer.message = Message;
+			lateTypeOut ();
+		}
+	}
+
+	public IEnumerator lateTypeOut()
+	{
+		yield return new WaitForSeconds (10.0f);
+		dialogueBox.gameObject.SetActive (false);
+	}
 }

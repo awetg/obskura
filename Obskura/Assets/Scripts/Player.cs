@@ -82,8 +82,8 @@ public class Player : MonoBehaviour {
 		rotate = Quaternion.LookRotation(transform.position - mousePosition, Vector3.forward);	//used to represent rotation
 		transform.rotation = rotate;	// player rotate to "rotate" value
 
-
-		SurroundLight.Position = new Vector2 (transform.position.x, transform.position.y);
+		if(SurroundLight!=null)
+			SurroundLight.Position = new Vector2 (transform.position.x, transform.position.y);
 
 		transform.eulerAngles = new Vector3(0,0,transform.eulerAngles.z);	//used to prevent rotation on z-axis when mouse out side of play screen
 

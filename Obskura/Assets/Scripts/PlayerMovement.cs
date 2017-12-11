@@ -127,9 +127,9 @@ public class PlayerMovement : MonoBehaviour {
 				CancelInvoke("Move");
             }
 
-            whereToMove.Normalize(); //normalise turns whereToMove vector into unit vector.
+            whereToMove.Normalize(); //normalise turns wher  eToMove vector into unit vector.
 
-            MyRigidbody.transform.position = playerPosition + whereToMove * speed; //move player to new positon using unit vector WhereToMove
+            transform.position = playerPosition + whereToMove * speed; //move player to new positon using unit vector WhereToMove
 
 			var camera = GameObject.FindGameObjectWithTag ("MainCamera");
 

@@ -4,9 +4,7 @@ using UnityEngine.UI;
 
 public class DialogueHolder : MonoBehaviour {
 
-	public string dialogue;
 	private DialogueManager dialogueManager;
-
 	public string[] dialogueLines;
 	void Start()
 	{
@@ -34,5 +32,6 @@ public class DialogueHolder : MonoBehaviour {
 		}
 
 	}
-	}
+
+}
 }

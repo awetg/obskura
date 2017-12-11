@@ -9,11 +9,15 @@ public class Menu : MonoBehaviour {
 	public GameObject exitPanel;
 	public GameObject hover;
 	public GameObject click;
+	public Canvas d;
 	bool menuView = false;
 	bool buttonClicked = false;
+	public Typer typer;
 	// Use this for initialization
 	void Start () {
 		exitPanel.gameObject.SetActive (false);
+//		typer = GameObject.FindGameObjectWithTag ("Paper").GetComponent<Typer>();
+
 
 	}
 	
@@ -69,5 +73,11 @@ public class Menu : MonoBehaviour {
 //		Application.Quit();
 //		UnityEditor.EditorApplication.isPlaying = false;
 		SceneManager.LoadScene("MainMenu");
+	}
+
+	public void typerButtonclick()
+	{
+		d.gameObject.SetActive (false);
+
 	}
 }
