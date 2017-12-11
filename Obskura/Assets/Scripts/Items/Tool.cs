@@ -9,6 +9,7 @@ public class Tool : Item {
 
 	protected override void Action (Player player)
 	{
+		base.Action (player);
 		player.CollectTool (torch: TorchType, gun: GunType);
 	}
 		

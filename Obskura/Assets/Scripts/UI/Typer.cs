@@ -3,20 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(AudioClip))]
+[RequireComponent(typeof(AudioSource))]
 [RequireComponent(typeof(Text))]
 
 public class Typer : MonoBehaviour {
 
 	public string message = "write here";
-	public Text textHolder;
 	public float startDelay = 2f;
 	public float typeDelay = 0.02f;
 	public AudioClip typerClip;
+	private Text textHolder;
 
 	// Use this for initialization
 	void Start () {
+		textHolder.text = "";
 		StartCoroutine ("TypeIn");
+
 	}
 
 	void Awake(){
@@ -29,15 +31,17 @@ public class Typer : MonoBehaviour {
 //	}
 
 	public IEnumerator TypeIn(){
-	
+
 		yield return new WaitForSeconds (startDelay);
 
-		for (int i = 0; i < message.Length; i++) {
+		for (int i = 0; i < message.Length + 1; i++) {
 		
 			textHolder.text = message.Substring (0, i);
 			GetComponent<AudioSource> ().PlayOneShot (typerClip);
 			yield return new WaitForSeconds (typeDelay);
 		}
+		yield return new WaitForSeconds (10.0f);
+		StartCoroutine (TypeOut ());
 	}
 
 	public IEnumerator TypeOut(){
