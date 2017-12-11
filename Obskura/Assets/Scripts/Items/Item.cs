@@ -58,7 +58,7 @@ public abstract class Item : MonoBehaviour {
 
 	public IEnumerator lateTypeOut()
 	{
-		yield return new WaitForSeconds (30.0f);
+		yield return new WaitForSeconds (10.0f);
 		dialogueBox.gameObject.SetActive (false);
 	}
 }
