@@ -20,15 +20,16 @@ public class DialogueManager : MonoBehaviour {
 			currentLine++;
 		}
 
+		//if the number of line exceeds dialogue lines, it means it is the end of the conversation.
 		if(currentLine >=dialogueLines.Length)
 		{
 			dialogueBox.SetActive (false);
 			dialogueActive = false;
-			currentLine = 0;
+			currentLine = 0; //set the currentline back to zero -> back to beginning
 
 		}
 
-		dialogueText = dialogueLines [currentline];
+		dialogueText.text = dialogueLines [currentLine];
 	}
 
 	public void ShowBox(string dialogue)
@@ -36,5 +37,11 @@ public class DialogueManager : MonoBehaviour {
 		dialogueActive = true;
 		dialogueBox.SetActive (true);
 		dialogueText.text = dialogue;
+	}
+
+	public void ShowDialogue ()
+	{
+		dialogueActive = true;
+		dialogueBox.SetActive (true);
 	}
 }

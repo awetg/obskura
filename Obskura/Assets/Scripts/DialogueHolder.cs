@@ -7,6 +7,7 @@ public class DialogueHolder : MonoBehaviour {
 	public string dialogue;
 	private DialogueManager dialogueManager;
 
+	public string[] dialogueLines;
 	void Start()
 	{
 		dialogueManager = FindObjectOfType<DialogueManager> ();
@@ -22,13 +23,16 @@ public class DialogueHolder : MonoBehaviour {
 		if(other.gameObject.name == "Player")
 		{
 			if(Input.GetKeyUp(KeyCode.Space))
-			{
-				dialogueManager.dialogueLines=dialogueLines;
-				dialogueManager.currentLine=0;
-					dialogueManager.ShowDialogue();
+			{   
+				//check if dialogue is not active, we activate it
+				if(!dialogueManager.dialogueActive)
+				{
+					dialogueManager.dialogueLines=dialogueLines;
+					dialogueManager.currentLine=0;
+					dialogueManager.ShowDialogue ();
 			}
 		}
 
 	}
 	}
-
+}
