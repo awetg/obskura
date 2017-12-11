@@ -183,6 +183,12 @@ public class Baal : Enemy, ICollidableActor2D {
 	void EndAttack(){
 	}
 		
+	public override void Alert (EnemyAlert type)
+	{
+		base.Alert (type);
+		//If the player alerted the enemy, extend the chase range to three times normal
+		chaseIfInSight (sightDistance * 3);
+	}
 
 	private void TeleportEffect(bool active){
 		foreach (Transform t in gameObject.transform) {

@@ -144,13 +144,16 @@ public abstract class Enemy : MonoBehaviour {
 			SetState (EnemyState.CHASE);
 	}
 
-	public void GetDamaged(float damage){
+	public EnemyState GetCurrentState(){
+		return currentState;
+	}
+
+	public virtual void GetDamaged(float damage){
 		enemyHp -= damage;
 		Alert (EnemyAlert.DAMAGE);
 	}
 
-	public void GetDamagedByLight(float damage){
-		Debug.Log (damage);
+	public virtual void GetDamagedByLight(float damage){
 		if (!isLightEffectPlaying)
 			InLightEffect (true);
 		
