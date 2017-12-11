@@ -48,30 +48,38 @@ public static class Geometry {
 	public static List<Vector3> GetVertices(Vector2 pos, float range = 8.0F) {
 		List<Vector3> borderVertices = GetSquareCornersVertices (pos, range);
 
-		return vertices.Where(v => (Mathf.Abs(pos.x - v.x) < range) && (Mathf.Abs(pos.y - v.y) < range))
-			.Concat(borderVertices).Concat(dynVertices).ToList();
+		var dynVs = dynVertices.Where (v => (Mathf.Abs (pos.x - v.x) < range) && (Mathf.Abs (pos.y - v.y) < range));
 
-		/*float sqrRange = range * range;
-		return vertices.Where(v => {
-			float dx = pos.x - v.x;
-			float dy = pos.y - v.y;
-			return (dx*dx) + (dy*dy) < sqrRange;}
-		).Concat(borderVertices).Concat(dynVertices).ToList();*/
+		return vertices.Where(v => (Mathf.Abs(pos.x - v.x) < range) && (Mathf.Abs(pos.y - v.y) < range))
+			.Concat(borderVertices).Concat(dynVs).ToList();
+
 	}
 
 	public static List<Segment2D> GetSegments(Vector2 pos, float range = 8.0F) {
 		List<Segment2D> borderSegments = GetSquareCornersSegments (pos, range); //GetSquareBorderSegments (pos, range);
+
+		var dynSegs = dynSegments.Where (s => 
+			(Mathf.Abs (pos.x - s.a.x) < range) && (Mathf.Abs (pos.y - s.a.y) < range) &&
+			(Mathf.Abs (pos.x - s.b.x) < range) && (Mathf.Abs (pos.y - s.b.y) < range));
+
 		return segments.Where(s => 
 			(Mathf.Abs(pos.x - s.a.x) < range) && (Mathf.Abs(pos.y - s.a.y) < range) &&
 			(Mathf.Abs(pos.x - s.b.x) < range) && (Mathf.Abs(pos.y - s.b.y) < range)
-		).Concat(borderSegments).Concat(dynSegments).ToList();
-		/*return segments.Where(s => {
-			float dxa = pos.x - s.a.x;
-			float dya = pos.y - s.a.y;
-			float dxb = pos.x - s.b.x;
-			float dyb = pos.y - s.b.y;
-			return (dxa*dxa)+(dya*dya) < sqrRange && (dxb*dxb)+(dyb*dyb) < sqrRange;
-		}).Concat(borderSegments).Concat(dynSegments).ToList();*/
+		).Concat(borderSegments).Concat(dynSegs).ToList();
+
+	}
+
+	public static List<Polygon2D> GetWalls(Vector2 pos, float range = 8.0F) {
+		var dynWs = dynWalls.Where (w => 
+			w.segments.Exists (s => 
+				((Mathf.Abs (pos.x - s.a.x) < range) && (Mathf.Abs (pos.y - s.a.y) < range) ||
+		         (Mathf.Abs (pos.x - s.b.x) < range) && (Mathf.Abs (pos.y - s.b.y) < range))));
+
+		return walls.Where(w => 
+			w.segments.Exists(s => 
+				((Mathf.Abs(pos.x - s.a.x) < range) && (Mathf.Abs(pos.y - s.a.y) < range) ||
+				 (Mathf.Abs(pos.x - s.b.x) < range) && (Mathf.Abs(pos.y - s.b.y) < range)))
+		).Concat(dynWalls).ToList();
 	}
 
 
@@ -138,22 +146,22 @@ public static class Geometry {
 
 	}
 
-	public static bool IsPointInAWall(Vector2 p){
-		return IsPointInAWall(new Vector3(p.x, p.y, 0));
+	public static bool IsPointInAWall(Vector2 p, float range = 8.0F){
+		return IsPointInAWall(new Vector3(p.x, p.y, 0), segMaxLength);
 	}
 
-	public static bool IsPointInAWall(Vector3 p){
-		return walls.Exists (w => PolygonContainsPoint (w, p));
+	public static bool IsPointInAWall(Vector3 p, float range = 8.0F){
+		return GetWalls(p, segMaxLength).Exists (w => PolygonContainsPoint (w, p));
 	}
 
-	public static bool IsSquareInAWall(Vector3 p, float size){
+	public static bool IsSquareInAWall(Vector3 p, float size, float range = 8.0F){
 		float halfSide = size / 2;
 		List<Vector2> vertices = new List<Vector2> (4);
 		vertices.Add (new Vector2(p.x + halfSide, p.y + halfSide));
 		vertices.Add (new Vector2(p.x + halfSide, p.y - halfSide));
 		vertices.Add (new Vector2(p.x - halfSide, p.y + halfSide));
 		vertices.Add (new Vector2(p.x - halfSide, p.y - halfSide));
-		return vertices.Exists(v => IsPointInAWall(v));
+		return vertices.Exists(v => IsPointInAWall(v, segMaxLength));
 	}
 
 	public static bool IsRectangleInAWall(Vector3 p, float w, float h){
@@ -248,15 +256,16 @@ public static class Geometry {
 
 		//Find the first viable intersection
 		Intersection first = new Intersection(null, null, null);
-		bool isThereAnIntersection = false;
+		//bool isThereAnIntersection = false;
 		for (int i = 0; i < segments.Count; i++) {
 			Intersection tmp = Geometry.GetIntersection (ray, segments [i]);
 			if (tmp.v != null) {
 				first = tmp;
-				isThereAnIntersection = true;
+				//isThereAnIntersection = true;
 				break;
 			}
 		}
+			
 
 		//Find the nearest interception by computing a minimum
 		Intersection nearestIntersection = first;

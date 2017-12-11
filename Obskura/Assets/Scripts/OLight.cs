@@ -463,7 +463,7 @@ public class OLight : MonoBehaviour {
 
 				//Debug.Log ("Inflicted Damage " + damage + " to " + enemy.name);
 
-				enemy.GetDamaged (damage);
+				enemy.GetDamagedByLight (damage);
 			}
 		}
 	}

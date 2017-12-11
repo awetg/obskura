@@ -121,18 +121,6 @@ public class Hades : Enemy, ICollidableActor2D
 			EnemyAnimator.speed = 2.0f + (speed - 4f)*0.1f;
 		}
 
-		/*if (speedProportion < 0.5F) {
-			Debug.Log (speed);
-			EnemyAnimator.SetFloat ("Run", 0.0f);
-			EnemyAnimator.speed = speed;
-		} else if (speedProportion < 0.8F) {
-			EnemyAnimator.SetFloat ("Run", 1.2f);
-			EnemyAnimator.speed = speedProportion + 0.2F;
-		} else {
-			EnemyAnimator.SetFloat ("Run", 1.2f);
-			EnemyAnimator.speed = 1.0F;
-		}*/
-
 		if (Time.time < endChaseTime && target && playerUnsafe) {
 			if (Vector3.Distance (target.position, transform.position) < attackRange) {
 				EnemyAnimator.speed = 1.0F;
@@ -200,6 +188,9 @@ public class Hades : Enemy, ICollidableActor2D
 		}
 
 	}
+
+
+	//*** ICollidableActor2D Implementation ***
 
 	public float GetSize() {
 		return 1.5f;

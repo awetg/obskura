@@ -5,7 +5,7 @@ using UnityEngine;
 public abstract class Item : MonoBehaviour {
 
 	public bool DestroyAfterTrigger = true;
-	public bool TriggerOnlyOnUse = true;
+	public bool TriggerOnlyOnUse = false;
 	public float TriggerRechargeAfter = 1.0F;
 	public float TriggerDistance = 2.0F;
 	public Typer typer;

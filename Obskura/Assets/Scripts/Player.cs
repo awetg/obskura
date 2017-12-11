@@ -76,7 +76,8 @@ public class Player : MonoBehaviour {
 	}
 
 	void Update()
-	{	///////// PLAYER LOOK AT MOUSE ///////////
+	{			
+		///////// PLAYER LOOK AT MOUSE ///////////
 		var mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);	//used to get mouse position to rotate player towards mouse
 		rotate = Quaternion.LookRotation(transform.position - mousePosition, Vector3.forward);	//used to represent rotation
 		transform.rotation = rotate;	// player rotate to "rotate" value
