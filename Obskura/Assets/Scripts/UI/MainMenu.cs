@@ -55,34 +55,35 @@ public class MainMenu : MonoBehaviour {
 //		
 //	}
 
-	public void GetUserName(string newUser){
+	public void GetUserName(string newUser){	//getting input from input field in main menu
 
 		userName = newUser;
 	}
 
 
-	public void EnterB(){
+	public void EnterB(){	// On click of Enter button
 		
 		if (userName == null) {
 			tipText.gameObject.SetActive (true);
 		}
 		else {
+			//write useName to database
 			logInPanel.gameObject.SetActive (false);
 			mainPanel.gameObject.SetActive (true);
 		}
 	}
 
 
-	public void NewGameB(){
+	public void NewGameB(){	// on click of New game button
 		SceneManager.LoadScene ("copyOfDemo");
 	}
 
-	public void NewGamePlusB(){
+	public void NewGamePlusB(){	// on click of new game plus button
 		mainPanel.gameObject.SetActive(false);
 		gamePlusPanel.gameObject.SetActive(true);
 	}
 
-	public void StatisticsB(){
+	public void StatisticsB(){	// on click of statistics button
 		mainPanel.gameObject.SetActive(false);
 		statisticsPanel.gameObject.SetActive(true);
 	}
@@ -103,12 +104,12 @@ public class MainMenu : MonoBehaviour {
 		}
 	}
 
-	public void ReturnNewGamePlus(){
+	public void ReturnNewGamePlus(){	// on click of return button in new game plus panel
 		mainPanel.gameObject.SetActive(true);
 		gamePlusPanel.gameObject.SetActive(false);
 	}
 
-	public void ReturnStatistics(){
+	public void ReturnStatistics(){	// on click of return button in statistics panel
 		mainPanel.gameObject.SetActive(true);
 		statisticsPanel.gameObject.SetActive(false);
 	}
@@ -118,41 +119,39 @@ public class MainMenu : MonoBehaviour {
 		settingsPanel.gameObject.SetActive(false);
 	}
 
-	public void NormalB(){
+	public void NormalB(){	// on click of normal button in settings panel (setting game difficulty to normal)
 		normalButton.GetComponent<Image> ().color = selected;
 		hardButton.GetComponent<Image> ().color = notSelected;
-		Debug.Log ("noraml mode");
 	}
 
-	public void HardB(){
+	public void HardB(){	//on click of hard button in settings panel ( setting game difficulty to hard)
 		normalButton.GetComponent<Image> ().color = notSelected;
 		hardButton.GetComponent<Image> ().color = selected;
-		Debug.Log ("Hard mode");
 	}
 
-	public void ButtonHover(){
+	public void ButtonHover(){	// on hover all buttons play sound
 		hover.GetComponent<AudioSource> ().Play ();
 	}
 
-	public void ButtonClick(){
+	public void ButtonClick(){	// on click all buttons play sound
 		click.GetComponent<AudioSource> ().Play ();
 	}
 
-	public void NoB(){
+	public void NoB(){	// on click of NO button in exit panel
 		exitClicked = false;
 		exitPanel.gameObject.SetActive (false);
 	}
 
-	public void YesB(){
+	public void YesB(){	// on click of YES button in exit panel ( exits the application totally)
 		//		Application.Quit();
 		UnityEditor.EditorApplication.isPlaying = false;
 	}
 
-	public void dropDownOutput(int option){
+	public void dropDownOutput(int option){	// recieving drop down out put from drop down element
 		Debug.Log (resolutions [option]);
 	}
 
-	public void sliderValueChange (){
+	public void sliderValueChange (){	// change in value from slider element to control volume of game music
 	
 		sliderValue = musicSlider.value;
 		music.GetComponent<AudioSource> ().volume = sliderValue;

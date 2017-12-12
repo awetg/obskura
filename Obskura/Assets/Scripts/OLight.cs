@@ -87,7 +87,7 @@ public class OLight : MonoBehaviour {
 		List<Segment2D> segments = Geometry.GetSegments(new Vector2(pos.x, pos.y), range : maxRange); //Segments of the walls or light blocking objects
 		List<Vector3> vertices = Geometry.GetVertices(new Vector2(pos.x, pos.y), range : maxRange); //Vertices of the walls or light blocking objects
 
-		if (segments.Count != debugSegC) {
+		/*if (segments.Count != debugSegC) {
 			debugSegC = segments.Count;
 			Debug.Log ("Segments: " + debugSegC);
 		}
@@ -95,7 +95,7 @@ public class OLight : MonoBehaviour {
 		if (vertices.Count != debugVertC) {
 			debugVertC = vertices.Count;
 			Debug.Log ("Segments: " + debugVertC);
-		}
+		}*/
 
 		const float delta = 0.00001f;
 
@@ -265,7 +265,7 @@ public class OLight : MonoBehaviour {
 			seg.a = new Vector2(wPos1.x,wPos1.y);
 			seg.b = new Vector2(wPos2.x, wPos2.y);
 
-			Debug.DrawLine (seg.a, seg.b, Color.red, 0.1F);
+			//Debug.DrawLine (seg.a, seg.b, Color.red, 0.1F);
 			lightSegments.Add(seg);
 		}
 

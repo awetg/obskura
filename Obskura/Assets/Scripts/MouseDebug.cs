@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using UnityEngine;
 
 public class MouseDebug : MonoBehaviour {
@@ -8,6 +9,15 @@ public class MouseDebug : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		Debug.Log(Application.dataPath + "/Database/test.db");
+		Database db = new Database (Application.dataPath + "/Database/test.db");
+
+		var res = db.Query ("select playername from Player;");
+
+		while (res.Read()) {
+			Debug.Log(res.GetString(0));
+		}
+
 		/* //DEBUG FOR TAGS
 		var gos = Tags.GetAllGameObjects ();
 		gos.ForEach (g => Debug.Log (g.name));

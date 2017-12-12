@@ -1,23 +1,20 @@
 ﻿using System;
-using System.Data;
-using System.Data.Common;
-using System.Data.SQLite.Linq;
+//using System.Data;
 using System.Collections.Generic;
 using UnityEngine;
+using Mono.Data.SqliteClient;
 
 public class Database
 {
 	String dbConnection;
-	SQLiteProviderFactory database = new SQLiteProviderFactory();
-	IDbConnection connection;
+	//SqliteConnection connection;
 
 	/// <summary>
 	///     Default Constructor for SQLiteDatabase Class.
 	/// </summary>
 	public Database()
 	{
-	    connection = database.CreateConnection ();
-		connection.ConnectionString = "Data Source=recipes.s3db";
+		dbConnection = "Data Source=";
 	}
 
 	/// <summary>
@@ -26,8 +23,10 @@ public class Database
 	/// <param name="inputFile">The File containing the DB</param>
 	public Database(String inputFile)
 	{
-		connection = database.CreateConnection ();
-		connection.ConnectionString = String.Format("Data Source={0}", inputFile);
+		dbConnection = String.Format("URI=file:{0},version=3", inputFile);
+		Debug.Log (dbConnection.ToString());
+		Debug.Log ("r28");
+
 	}
 
 	/// <summary>
@@ -42,8 +41,7 @@ public class Database
 			str += String.Format("{0}={1}; ", row.Key, row.Value);
 		}
 		str = str.Trim().Substring(0, str.Length - 1);
-		connection = database.CreateConnection ();
-		connection.ConnectionString = str;
+		dbConnection = str;
 	}
 
 	/// <summary>
@@ -51,24 +49,33 @@ public class Database
 	/// </summary>
 	/// <param name="sql">The SQL to run</param>
 	/// <returns>A DataTable containing the result set.</returns>
-	public DataTable Query(string sql)
+	public System.Data.Common.DbDataReader Query(string sql)
 	{
-		DataTable dt = new DataTable();
-		try
-		{
-			connection.Open();
-			IDbCommand com = connection.CreateCommand();
-			com.CommandText = sql;
-			IDataReader reader = com.ExecuteReader();
-			dt.Load(reader);
-			reader.Close();
-			connection.Close();
-		}
+		/*try
+		{*/
+		Debug.Log (dbConnection);
+		Debug.Log ("r55");
+		var connection = new Mono.Data.SqliteClient.SqliteConnection(dbConnection);
+		//var cmd = new Sql//iteCommand(sql, connection);
+		var cmd = connection.CreateCommand ();
+		cmd.CommandText = sql;
+		connection.Open ();
+
+		Debug.Log (connection.ToString ());
+		Debug.Log ("r60");
+
+			//connection.Open();
+		Debug.Log( connection.ConnectionString);
+		Debug.Log ("r64");
+			//SqliteCommand com = connection.CreateCommand();
+			//com.CommandText = sql;
+			var reader = cmd.ExecuteReader();
+			return reader;
+		/*}
 		catch (Exception e) {
 			throw new Exception (e.Message);
-		}
+		}*/
 
-		return dt;
 	}
 
 
@@ -82,8 +89,8 @@ public class Database
 	{
 		try
 		{
-			connection.Open();
-			IDbCommand com = connection.CreateCommand();
+			var connection = new Mono.Data.SqliteClient.SqliteConnection(dbConnection);
+			System.Data.Common.DbCommand com = connection.CreateCommand();
 			com.CommandText = sql;
 			int rowsUpdated = com.ExecuteNonQuery();
 			connection.Close();
@@ -183,14 +190,15 @@ public class Database
 	/// <returns>A boolean true or false to signify success or failure.</returns>
 	public bool ClearDB()
 	{
-		DataTable tables;
+		System.Data.Common.DbDataReader tables;
 		try
 		{
 			tables = this.Query("select NAME from SQLITE_MASTER where type='table' order by NAME;");
-			foreach (DataRow table in tables.Rows)
+			while (tables.Read())
 			{
-				this.ClearTable(table["NAME"].ToString());
+				this.ClearTable(tables.GetString(0));
 			}
+			tables.Close();
 			return true;
 		}
 		catch
