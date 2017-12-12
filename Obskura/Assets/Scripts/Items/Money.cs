@@ -8,6 +8,7 @@ public class Money : Item {
 
 	protected override void Action (Player player)
 	{
+		base.Action (player);
 		player.Money += Amount;
 	}
 		

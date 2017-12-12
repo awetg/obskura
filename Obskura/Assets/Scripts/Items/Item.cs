@@ -12,7 +12,10 @@ public abstract class Item : MonoBehaviour {
 	public Typer typer;
 	public string Message;
 	public Canvas dialogueBox;
-	CanvasGroup canvasGroup;
+	private CanvasGroup canvasGroup;
+	public float lateDestroyValue;
+	private float typeOutPaper= 20.0f;
+	private float typeOutOther = 5.0f;
 
 	bool triggered = false;
 	float rechargeAt = 0.0f;
@@ -25,6 +28,10 @@ public abstract class Item : MonoBehaviour {
 
 	// Update is called once per frame
 	protected void Update () {
+
+		if (triggered && DestroyAfterTrigger) {
+			return;
+		}
 
 		if (Time.time < rechargeAt)
 			return;
@@ -44,9 +51,6 @@ public abstract class Item : MonoBehaviour {
 			}
 		}
 
-		if (triggered && DestroyAfterTrigger)
-			Destroy (gameObject);
-
 	}
 
 	protected virtual void Action (Player player){
@@ -55,15 +59,24 @@ public abstract class Item : MonoBehaviour {
 			
 			dialogueBox.gameObject.SetActive (true);
 			typer.message = Message;
-			StartCoroutine (typer.TypeIn ());
-			StartCoroutine (FadeIn ());
-			StartCoroutine (lateDeactivate ());	// Fadeout and late deactivate
+			if (DestroyAfterTrigger) {
+				gameObject.GetComponent<SpriteRenderer> ().enabled = false;
+				StartCoroutine (typer.TypeIn(typeOutOther));
+				StartCoroutine (FadeIn ());
+				StartCoroutine (lateDeactivate ());
+				
+			}
+			else {	
+				StartCoroutine (typer.TypeIn (typeOutPaper));
+				StartCoroutine (FadeIn ());
+				StartCoroutine (lateDeactivate ());	// Fadeout and late deactivate
+			}
 		}
 	}
 
 	public IEnumerator lateDeactivate()
 	{
-		yield return new WaitForSeconds (40.0f);	//wait for time until message read about 20 seconds
+		yield return new WaitForSeconds (lateDestroyValue);	//wait for time until message read about 20 seconds
 
 		float time = 1f;
 		while(canvasGroup.alpha > 0)	//fade out
@@ -73,6 +86,9 @@ public abstract class Item : MonoBehaviour {
 		}
 
 		dialogueBox.gameObject.SetActive (false);
+
+		if (DestroyAfterTrigger)
+			Destroy (gameObject);
 	}
 
 	public IEnumerator FadeIn(){
@@ -82,11 +98,5 @@ public abstract class Item : MonoBehaviour {
 			canvasGroup.alpha += Time.deltaTime / time;
 			yield return null;
 		}
-	}
-
-	public void typerButtonclick()
-	{
-		dialogueBox.gameObject.SetActive (false);
-
 	}
 }

@@ -10,9 +10,6 @@ public class Papers : Item {
 	protected override void Action ( Player player)
 	{
 		base.Action (player);
-		//FIXME: Show title and text
-//		Debug.Log(Title + ":");
-//		Debug.Log (Text);
 	}
 		
 }

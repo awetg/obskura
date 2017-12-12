@@ -23,9 +23,10 @@ public class MainMenu : MonoBehaviour {
 	public GameObject click;
 	public GameObject music;
 
+
 	private float sliderValue;
 	private string userName;
-	private List<string> resolutions = new List<string> { "Default", "1920 X 1080", "1280 X 720", "800 X 600" };
+	private List<string> resolutions = new List<string> { "1366 X 768", "1920 X 1080", "1280 X 720", "800 X 600" };
 	// Default = 1366 X 768
 
 	private bool exitClicked=false;
@@ -34,20 +35,23 @@ public class MainMenu : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		logInPanel.gameObject.SetActive(true);
+		
+		logInPanel.gameObject.SetActive (true);
 		tipText.gameObject.SetActive (false);
 		mainPanel.gameObject.SetActive(false);
 		gamePlusPanel.gameObject.SetActive(false);
 		statisticsPanel.gameObject.SetActive(false);
 		settingsPanel.gameObject.SetActive(false);
 		exitPanel.gameObject.SetActive(false);
+//		dropDown.GetComponent<Dropdown> ().captionText.text = "Resolutions";
 		selected = normalButton.GetComponent<Image> ().color;
 		notSelected = hardButton.GetComponent<Image> ().color;
-//		dropDown.GetComponent<Dropdown> ().captionText.text = "Resolutions";
 		dropDown.GetComponent<Dropdown> ().AddOptions (resolutions);
 		musicSlider.onValueChanged.AddListener (delegate {
 			sliderValueChange ();
 		});
+		
+
 	}
 	
 //	// Update is called once per frame

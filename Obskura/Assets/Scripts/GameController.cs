@@ -2,13 +2,15 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour {
 
 	public Text HpText;	//to show hp number int hp will be converted it will start 100 by default
 	float hp=100;	//hp number //Probably better to move it in Player
 	float hpCompare;
+	public Text scoreValue;
+	public Text ammoValue;
+
 	public GameObject restart,endOfGame;	//GameObjects or items to be manipulated while play
 	private bool gameOver=false; //if true restart GameObject will be active
 	private bool labClose=false;	//if true acitvate endOfGame GameObject
@@ -26,6 +28,8 @@ public class GameController : MonoBehaviour {
 	public GameObject click;
 	bool menuView = false;
 	bool exitClicked = false;
+
+	public Canvas dialogueBox;
 
 
 
@@ -96,7 +100,14 @@ public class GameController : MonoBehaviour {
 
 	void ShowDamage(float hpamount){	//called from playerMovement() after damage registered
 		HpText.text = hp.ToString (); //conver hp(int) to string
-		Debug.Log ("shown");
+	}
+
+	void ShowScore(float hpamount){	//called from playerMovement() after damage registered
+		scoreValue.text = hp.ToString (); //conver hp(int) to string
+	}
+
+	void ShowAmmo(float hpamount){	//called from playerMovement() after damage registered
+		ammoValue.text = hp.ToString (); //conver hp(int) to string
 	}
 
 
@@ -161,5 +172,11 @@ public class GameController : MonoBehaviour {
 			//write gameName to database
 			SceneManager.LoadScene ("MainMenu");
 		}
+	}
+
+	public void typerButtonclick()
+	{
+		dialogueBox.gameObject.SetActive (false);
+
 	}
 }

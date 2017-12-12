@@ -29,17 +29,16 @@ public class Typer : MonoBehaviour {
 //		
 //	}
 
-	public IEnumerator TypeIn(){
+	public IEnumerator TypeIn(float typeOutWait){
 
 		yield return new WaitForSeconds (startDelay);
 
 		for (int i = 0; i < message.Length + 1; i++) {
-			Debug.Log ("what happend");
 			textHolder.text = message.Substring (0, i);
 			GetComponent<AudioSource> ().PlayOneShot (typerClip);
 			yield return new WaitForSeconds (typeDelay);
 		}
-		yield return new WaitForSeconds (10.0f);
+		yield return new WaitForSeconds (typeOutWait);
 		StartCoroutine (TypeOut ());
 	}
 
