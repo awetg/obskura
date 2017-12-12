@@ -8,7 +8,7 @@ public class Money : Item {
 
 	protected override void Action (Player player)
 	{
-//		player.Money += Amount;
+		player.Money += Amount;
 	}
 		
 }

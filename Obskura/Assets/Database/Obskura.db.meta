@@ -1,6 +1,11 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:Obskura/Assets/Database/Obskura.db.meta
 guid: a83bb390c279941a8ba66993616874e1
 timeCreated: 1513025643
+=======
+guid: 5d5a8a6ac2b7b854b9fb2de20f4233af
+timeCreated: 1513016841
+>>>>>>> 6cf6a77582fa4df60c98a35685bba8f0fa022ce7:Obskura/Assets/Database/Obskura.db.meta
 licenseType: Free
 DefaultImporter:
   externalObjects: {}

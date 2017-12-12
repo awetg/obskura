@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public abstract class Item : MonoBehaviour {
 
@@ -11,6 +12,7 @@ public abstract class Item : MonoBehaviour {
 	public Typer typer;
 	public string Message;
 	public Canvas dialogueBox;
+	CanvasGroup canvasGroup;
 
 	bool triggered = false;
 	float rechargeAt = 0.0f;
@@ -18,8 +20,7 @@ public abstract class Item : MonoBehaviour {
 
 	void Start(){
 		dialogueBox.gameObject.SetActive (false);
-//		typer = GameObject.FindGameObjectWithTag ("Paper").GetComponent<Typer>();
-//		Debug.Log (typer.ToString ());
+		canvasGroup = dialogueBox.GetComponent<CanvasGroup> ();
 	}
 
 	// Update is called once per frame
@@ -49,16 +50,43 @@ public abstract class Item : MonoBehaviour {
 	}
 
 	protected virtual void Action (Player player){
+		
 		if (Message != ""){
+			
 			dialogueBox.gameObject.SetActive (true);
 			typer.message = Message;
-			lateTypeOut ();
+			StartCoroutine (typer.TypeIn ());
+			StartCoroutine (FadeIn ());
+			StartCoroutine (lateDeactivate ());	// Fadeout and late deactivate
 		}
 	}
 
-	public IEnumerator lateTypeOut()
+	public IEnumerator lateDeactivate()
 	{
-		yield return new WaitForSeconds (10.0f);
+		yield return new WaitForSeconds (40.0f);	//wait for time until message read about 20 seconds
+
+		float time = 1f;
+		while(canvasGroup.alpha > 0)	//fade out
+		{
+			canvasGroup.alpha -= Time.deltaTime / time;
+			yield return null;
+		}
+
 		dialogueBox.gameObject.SetActive (false);
+	}
+
+	public IEnumerator FadeIn(){
+		float time = 1f;
+		while(canvasGroup.alpha < 1)
+		{
+			canvasGroup.alpha += Time.deltaTime / time;
+			yield return null;
+		}
+	}
+
+	public void typerButtonclick()
+	{
+		dialogueBox.gameObject.SetActive (false);
+
 	}
 }
