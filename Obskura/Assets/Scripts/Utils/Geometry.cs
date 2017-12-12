@@ -538,9 +538,9 @@ public static class Geometry {
 /// </summary>
 public struct Intersection : System.IComparable<Intersection>
 {
-	public float? angle {get;set;}
-	public float? param {get;set;}
-	public Vector3? v { get; set;}
+	public float? angle;
+	public float? param;
+	public Vector3? v;
 
 	public int CompareTo(Intersection that) {
 		return this.param.Value.CompareTo(that.param.Value);
@@ -568,8 +568,8 @@ public struct PseudoAngleLocationTuple : System.IComparable<PseudoAngleLocationT
 //Ray from A to B
 public struct Ray2D
 {
-	public Vector2 a {get; set;}
-	public Vector2 b {get; set;}
+	public Vector2 a;
+	public Vector2 b;
 
 	public Ray2D(Vector2 _a, Vector2 _b)
 	{
@@ -587,8 +587,8 @@ public struct Ray2D
 //Segment from a to b
 public struct Segment2D
 {
-	public Vector2 a {get; set;}
-	public Vector2 b {get; set;}
+	public Vector2 a;
+	public Vector2 b;
 
 	public Segment2D(Vector2 _a, Vector2 _b)
 	{
