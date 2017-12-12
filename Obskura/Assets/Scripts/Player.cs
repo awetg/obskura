@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum RightHandTool{PLASMAGUN,NULL}	//items, will also be accessed from Gamecontroller
@@ -106,7 +107,7 @@ public class Player : MonoBehaviour {
 
 		if (Input.GetKeyDown (KeyCode.E))
 			usePressed = true;
-				
+
 		if (Input.GetKeyUp (KeyCode.E))
 			usePressed = false;
 
@@ -114,10 +115,10 @@ public class Player : MonoBehaviour {
 		if (torches.ContainsKey (leftHand) && torches [leftHand].light != null) {
 			torches [leftHand].light.Position = new Vector2 (transform.position.x, transform.position.y + 0.3f);
 			torches [leftHand].light.Direction = (transform.eulerAngles.z + 90) * Mathf.Deg2Rad;
-		
+
 			if (Input.GetKeyDown (KeyCode.T))
 				torches [leftHand].light.IsOn = !torches [leftHand].light.IsOn;
-		
+
 			//Ctrl to focus the light
 			if (!focused && Input.GetKeyDown (KeyCode.LeftControl)) {
 				torches [leftHand].light.ConeAngle /= 3f;
@@ -142,7 +143,7 @@ public class Player : MonoBehaviour {
 			}
 		} else if (resetCameraAt < Time.time) {
 			cameraDamage = 0;
-		
+
 			if (lightManager != null) {
 				lightManager.Overlay = new Color (0, 0, 0);
 			}
@@ -270,7 +271,7 @@ public class Player : MonoBehaviour {
 		if (leftHand != LeftHandTool.NULL && torches.ContainsKey (leftHand) && torches [leftHand].inInventory) {
 			torches [leftHand].light.IsOn = false;
 		}
-		
+
 		leftHand = item;
 
 		if (item != LeftHandTool.NULL && torches.ContainsKey (item) && torches [item].inInventory) {

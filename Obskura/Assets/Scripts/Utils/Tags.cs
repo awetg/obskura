@@ -8,6 +8,10 @@ public static class Tags {
 
 	static Dictionary<string,  List<GameObject>> cache = new Dictionary<string, List<GameObject>>();
 
+	public static void ClearCache(){
+		cache.Clear ();
+	}
+
 	public static void CacheTag(string tag){
 		if (cache.ContainsKey (tag)) {
 			cache [tag] = GameObjectsWithTag (tag);
@@ -37,8 +41,9 @@ public static class Tags {
 		foreach (Match m in matches) {
 			string tag = m.Value;
 
-			if (cache.ContainsKey (tag))
+			if (cache.ContainsKey (tag)) {
 				cache [tag].Remove (obj);
+			}
 		}
 	}
 

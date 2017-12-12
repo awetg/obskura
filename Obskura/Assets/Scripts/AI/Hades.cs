@@ -169,8 +169,8 @@ public class Hades : Enemy, ICollidableActor2D
 
 	void DeadState(){
 		FaceForward ();
+//		MynavMeshAgent.isStopped = true;	//stop enemy movement to do attack
 		MynavMeshAgent.enabled = false;
-		MynavMeshAgent.isStopped = true;	//stop enemy movement to do attack
 		MynavMeshAgent.velocity = Vector3.zero;
 	}
 

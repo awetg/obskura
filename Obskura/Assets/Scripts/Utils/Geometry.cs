@@ -24,6 +24,14 @@ public static class Geometry {
 		}
 	}
 
+	public static void Clear(){
+		segments.Clear ();
+		dynSegments.Clear();
+		vertices.Clear();
+		dynVertices.Clear();
+		walls.Clear();
+		dynWalls.Clear ();
+	}
 
 	public static void CollectVertices() {
 		CollectVertices (new string[1] {"Wall"});

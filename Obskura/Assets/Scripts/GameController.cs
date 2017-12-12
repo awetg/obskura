@@ -29,6 +29,7 @@ public class GameController : MonoBehaviour {
 
 
 
+
 //	public OLightManager lightManager; // See OLightManager.cs
 
 	void Awake()
@@ -42,20 +43,13 @@ public class GameController : MonoBehaviour {
 		canvas.gameObject.SetActive(false);
 		exitPanel.gameObject.SetActive (false);
 		endGamePanle.gameObject.SetActive (false);
+	
 	}
 	
 	// Update is called once per frame
 	void Update () {
 
-//		if (Input.GetKeyDown (KeyCode.Alpha1)) {
-//			player.SetWeapon (PlayerWeaponType.TORCH);
-//			SelectWeapon(PlayerWeaponType.TORCH);
-//		}
-//		if (Input.GetKeyDown (KeyCode.Alpha2)){
-//			player.SetWeapon (PlayerWeaponType.GUN);
-//			SelectWeapon(PlayerWeaponType.GUN);
-//		}
-		hpCompare =player.GetHP();
+		hpCompare = player.GetHP ();
 
 		if (hp != hpCompare) {
 			Debug.Log ("hp changed");
@@ -70,6 +64,8 @@ public class GameController : MonoBehaviour {
 		
 		if (gameOver && Input.GetKeyDown(KeyCode.R))	//if user press r, game is reloaded
 		{
+			Geometry.Clear ();
+			Tags.ClearCache ();
 			SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 		}
 		if (labClose) {
@@ -102,18 +98,6 @@ public class GameController : MonoBehaviour {
 		HpText.text = hp.ToString (); //conver hp(int) to string
 		Debug.Log ("shown");
 	}
-	//	void SelectWeapon(PlayerWeaponType weaponType){
-	//		switch (weaponType) {
-	//		case PlayerWeaponType.TORCH:
-	//			torch.SetActive (true);//make an object look active on window
-	//			gun.SetActive (false);
-	//			break;
-	//		case PlayerWeaponType.GUN:
-	//			torch.SetActive (false);
-	//			gun.SetActive (true);
-	//			break;
-	//		}
-	//	}
 
 
 
@@ -138,6 +122,7 @@ public class GameController : MonoBehaviour {
 
 	public void ShowMenu(){	
 		canvas.gameObject.SetActive(true);
+		Time.timeScale = 0.0f;
 
 	}
 
@@ -145,6 +130,7 @@ public class GameController : MonoBehaviour {
 		exitClicked = false;
 		exitPanel.gameObject.SetActive(false);
 		canvas.gameObject.SetActive (false);
+		Time.timeScale = 1.0f;
 	}
 
 	public void ButtonHover(){	// On hover of any button play sound
