@@ -84,7 +84,7 @@ public abstract class Item : MonoBehaviour {
 			canvasGroup.alpha -= Time.deltaTime / time;
 			yield return null;
 		}
-
+		dialogueBox.GetComponentInChildren<Text> ().text = "";
 		dialogueBox.gameObject.SetActive (false);
 
 		if (DestroyAfterTrigger)
