@@ -177,6 +177,7 @@ public class GameController : MonoBehaviour {
 	public void typerButtonclick()
 	{
 		dialogueBox.gameObject.SetActive (false);
+		dialogueBox.GetComponentInChildren<Text> ().text = "";
 
 	}
 }

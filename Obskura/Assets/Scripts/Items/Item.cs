@@ -39,6 +39,10 @@ public abstract class Item : MonoBehaviour {
 			}
 		}
 
+		if (triggered && DestroyAfterTrigger) {
+			Destroy (gameObject);
+		}
+
 	}
 
 	protected abstract void Action (Player player);

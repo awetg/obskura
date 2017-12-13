@@ -79,17 +79,13 @@ public abstract class ItemMessage : MonoBehaviour {
 
 		yield return new WaitForSeconds (lateDestroyValue);	//wait for time until message read about 20 seconds
 
-		if (dialogueBox.gameObject.activeSelf) {
-
-			float time = 1f;
-			while (canvasGroup.alpha > 0) {	//fade out
-				canvasGroup.alpha -= Time.deltaTime / time;
-				yield return null;
-			}
-
-			dialogueBox.gameObject.SetActive (false);
-
+		float time = 0.5f;
+		while (canvasGroup.alpha > 0) {	//fade out
+			canvasGroup.alpha -= Time.deltaTime / time;
+			yield return null;
 		}
+		dialogueBox.GetComponentInChildren<Text> ().text = "";
+		dialogueBox.gameObject.SetActive (false);
 
 		if (DestroyAfterTrigger)
 			Destroy (gameObject);
