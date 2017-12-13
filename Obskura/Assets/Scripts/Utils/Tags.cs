@@ -59,6 +59,8 @@ public static class Tags {
 		List<GameObject> res = new List<GameObject> ();
 		if (cache.ContainsKey(tag)){
 			foreach (GameObject obj in cache[tag]){
+				if (obj == null)
+					continue;
 				var diff = new Vector2(obj.transform.position.x, obj.transform.transform.position.y) - center;
 				var dist = diff.magnitude;
 				if (dist <= range)

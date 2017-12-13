@@ -441,6 +441,8 @@ public class OLight : MonoBehaviour {
 
 		var objs = Tags.CachedGameObjectsWithTagInRange (damageTag, transform.position, DimmingDistance * maximumDistanceFactor);
 
+		Debug.Log (objs.Count);
+
 		foreach (GameObject obj in objs) {
 			Enemy enemy = obj.GetComponent<Enemy>();
 
@@ -449,6 +451,8 @@ public class OLight : MonoBehaviour {
 
 				if (!PointIsInLight (enemyPos))
 					return;
+
+				Debug.Log ("Damage");
 
 				Vector2 lightPos = new Vector2 (transform.position.x, transform.position.y);
 				Vector2 diff = enemyPos - lightPos;

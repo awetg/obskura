@@ -192,7 +192,6 @@ public abstract class Enemy : MonoBehaviour {
 			foreach (Transform t in gameObject.transform) {
 				if (t.gameObject.name == showEffectInLight) {
 					isLightEffectPlaying = active;
-					Debug.Log (active);
 					t.gameObject.SetActive (active);
 				}
 			}
