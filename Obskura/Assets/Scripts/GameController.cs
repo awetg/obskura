@@ -7,7 +7,7 @@ public class GameController : MonoBehaviour {
 
 	public Text HpText;	//to show hp number int hp will be converted it will start 100 by default
 	float hp=100;	//hp number //Probably better to move it in Player
-	float hpCompare;
+
 	public Text scoreValue;
 	public Text ammoValue;
 
@@ -52,8 +52,7 @@ public class GameController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-
-		hpCompare = player.GetHP ();
+		float hpCompare = player.GetHP ();
 
 		if (hp != hpCompare) {
 			Debug.Log ("hp changed");
@@ -65,7 +64,10 @@ public class GameController : MonoBehaviour {
 				UnityEditor.EditorApplication.isPaused = false;
 			}
 		}
-		
+
+		ShowAmmo (player.Ammo);
+		ShowScore (player.Score);
+
 		if (gameOver && Input.GetKeyDown(KeyCode.R))	//if user press r, game is reloaded
 		{
 			Geometry.Clear ();
@@ -93,21 +95,16 @@ public class GameController : MonoBehaviour {
 	}
 
 
-
-
-
-
-
 	void ShowDamage(float hpamount){	//called from playerMovement() after damage registered
-		HpText.text = hp.ToString (); //conver hp(int) to string
+		HpText.text = hpamount.ToString (); //conver hp(int) to string
 	}
 
-	void ShowScore(float hpamount){	//called from playerMovement() after damage registered
-		scoreValue.text = hp.ToString (); //conver hp(int) to string
+	void ShowScore(float score){	//called from playerMovement() after damage registered
+		scoreValue.text = score.ToString (); //conver hp(int) to string
 	}
 
-	void ShowAmmo(float hpamount){	//called from playerMovement() after damage registered
-		ammoValue.text = hp.ToString (); //conver hp(int) to string
+	void ShowAmmo(int ammo){	//called from playerMovement() after damage registered
+		ammoValue.text = ammo.ToString (); //conver hp(int) to string
 	}
 
 

@@ -111,6 +111,7 @@ public class Player : MonoBehaviour {
 					achievements.GetComponent<Achievements> ().GunFired ();
 				
 				guns [rightHand].gun.Fire (transform.position, mousePosition);
+				Ammo -= 1;
 			}
 		}
 
