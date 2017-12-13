@@ -3,7 +3,7 @@
 public static class GameData
 {
 	const float difficultyFactor = 0.5f;
-	private static string playerName;
+	private static string playerName = "";
 	private static GameEntry selectedNewGamePlus;
 	private static int difficulty = 2;
 
