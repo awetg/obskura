@@ -55,19 +55,22 @@ public abstract class ItemMessage : MonoBehaviour {
 
 	protected virtual void Action (Player player){
 
+	
 		if (Message != ""){
 			if (dialogueBox != null && typer != null) {
 				dialogueBox.gameObject.SetActive (true);
+				canvasGroup.alpha = 1.0F;
 				typer.message = Message;
+				typer.showText ();
 			}
 			if (DestroyAfterTrigger) {
 				gameObject.GetComponent<SpriteRenderer> ().enabled = false;
-				StartCoroutine (FadeIn ());
-				StartCoroutine (lateDeactivate ());
+				//StartCoroutine (FadeIn ());
+				//StartCoroutine (lateDeactivate ());
 			}
 			else {
-				StartCoroutine (FadeIn ());
-				StartCoroutine (lateDeactivate ());	// Fadeout and late deactivate
+				//StartCoroutine (FadeIn ());
+				//StartCoroutine (lateDeactivate ());	// Fadeout and late deactivate
 			}
 		}
 	}

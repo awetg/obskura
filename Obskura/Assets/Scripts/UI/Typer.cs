@@ -15,7 +15,7 @@ public class Typer : MonoBehaviour {
 
 	}
 
-	void showText(){
+	public void showText(){
 		textHolder.text = message;
 	}
 

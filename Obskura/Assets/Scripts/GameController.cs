@@ -56,7 +56,7 @@ public class GameController : MonoBehaviour {
 			if (player.HP <= 0) {
 				restart.SetActive (true);
 				gameOver = true;
-				UnityEditor.EditorApplication.isPaused = false;
+				//UnityEditor.EditorApplication.isPaused = false;
 			}
 
 		ShowAmmo (player.Ammo);

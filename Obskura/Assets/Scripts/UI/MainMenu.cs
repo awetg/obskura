@@ -97,8 +97,8 @@ public class MainMenu : MonoBehaviour {
 	}
 
 	public void YesB(){	// on click of YES button in exit panel ( exits the application totally)
-		//		Application.Quit();
-		UnityEditor.EditorApplication.isPlaying = false;
+		Application.Quit();
+		//UnityEditor.EditorApplication.isPlaying = false;
 	}
 		
 
