@@ -56,9 +56,10 @@ public abstract class ItemMessage : MonoBehaviour {
 	protected virtual void Action (Player player){
 
 		if (Message != ""){
-
-			dialogueBox.gameObject.SetActive (true);
-			typer.message = Message;
+			if (dialogueBox != null && typer != null) {
+				dialogueBox.gameObject.SetActive (true);
+				typer.message = Message;
+			}
 			if (DestroyAfterTrigger) {
 				gameObject.GetComponent<SpriteRenderer> ().enabled = false;
 				StartCoroutine (typer.TypeIn(typeOutOther));
@@ -84,8 +85,11 @@ public abstract class ItemMessage : MonoBehaviour {
 			canvasGroup.alpha -= Time.deltaTime / time;
 			yield return null;
 		}
-		dialogueBox.GetComponentInChildren<Text> ().text = "";
-		dialogueBox.gameObject.SetActive (false);
+
+		if (dialogueBox != null) {
+			dialogueBox.GetComponentInChildren<Text> ().text = "";
+			dialogueBox.gameObject.SetActive (false);
+		}
 
 		if (DestroyAfterTrigger)
 			Destroy (gameObject);
