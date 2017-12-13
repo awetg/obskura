@@ -11,16 +11,15 @@ public class GameController : MonoBehaviour {
 	public Text scoreValue;
 	public Text ammoValue;
 
-	public GameObject restart,endOfGame;	//GameObjects or items to be manipulated while play
+	public GameObject restart;	//GameObjects or items to be manipulated while play
 	private bool gameOver=false; //if true restart GameObject will be active
-	private bool labClose=false;	//if true acitvate endOfGame GameObject
 	public Player player;	// to access public methods of player
 
 
 
 	private string gameName;	//after game is won get game name for game plus
-	public GameObject tipText;	// if game name is nor properly entered activate tip text
-	public GameObject canvas;
+	public GameObject tipTextExit;	// if game name is nor properly entered activate tip text
+	public GameObject menuCanvas;
 	public GameObject MainPanel;
 	public GameObject endGamePanle;
 	public GameObject exitPanel;
@@ -44,7 +43,7 @@ public class GameController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		canvas.gameObject.SetActive(false);
+		menuCanvas.gameObject.SetActive(false);
 		exitPanel.gameObject.SetActive (false);
 		endGamePanle.gameObject.SetActive (false);
 	
@@ -73,9 +72,6 @@ public class GameController : MonoBehaviour {
 			Geometry.Clear ();
 			Tags.ClearCache ();
 			SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-		}
-		if (labClose) {
-			endOfGame.SetActive(true);	//if player achieve main objective activate object used to exit Lab
 		}
 
 
@@ -129,7 +125,7 @@ public class GameController : MonoBehaviour {
 
 
 	public void ShowMenu(){	
-		canvas.gameObject.SetActive(true);
+		menuCanvas.gameObject.SetActive(true);
 		Time.timeScale = 0.0f;
 
 	}
@@ -137,7 +133,7 @@ public class GameController : MonoBehaviour {
 	public void CloseMenu(){	// if menu exited using escape key
 		exitClicked = false;
 		exitPanel.gameObject.SetActive(false);
-		canvas.gameObject.SetActive (false);
+		menuCanvas.gameObject.SetActive (false);
 		Time.timeScale = 1.0f;
 	}
 
@@ -164,7 +160,7 @@ public class GameController : MonoBehaviour {
 	public void EnterGameNameB(){
 	
 		if (gameName == null)
-			tipText.gameObject.SetActive (true);
+			tipTextExit.gameObject.SetActive (true);
 		else {
 			//write gameName to database
 			SceneManager.LoadScene ("MainMenu");

@@ -26,8 +26,6 @@ public class MainMenu : MonoBehaviour {
 
 	private float sliderValue;
 	private string userName;
-	private List<string> resolutions = new List<string> { "1366 X 768", "1920 X 1080", "1280 X 720", "800 X 600" };
-	// Default = 1366 X 768
 
 	private bool exitClicked=false;
 	private Color selected, notSelected;
@@ -36,7 +34,7 @@ public class MainMenu : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		
-		logInPanel.gameObject.SetActive (true);
+		logInPanel.gameObject.SetActive (false);
 		tipText.gameObject.SetActive (false);
 		mainPanel.gameObject.SetActive(false);
 		gamePlusPanel.gameObject.SetActive(false);
@@ -46,11 +44,11 @@ public class MainMenu : MonoBehaviour {
 //		dropDown.GetComponent<Dropdown> ().captionText.text = "Resolutions";
 		selected = normalButton.GetComponent<Image> ().color;
 		notSelected = hardButton.GetComponent<Image> ().color;
-		dropDown.GetComponent<Dropdown> ().AddOptions (resolutions);
 		musicSlider.onValueChanged.AddListener (delegate {
 			sliderValueChange ();
 		});
-		
+
+		StartMainMenu ();
 
 	}
 	
@@ -58,6 +56,14 @@ public class MainMenu : MonoBehaviour {
 //	void Update () {
 //		
 //	}
+
+	private void StartMainMenu(){
+		if (GameData.GetPlayerName () == null) {
+			logInPanel.gameObject.SetActive (true);
+		} else
+			mainPanel.gameObject.SetActive (true);
+	
+	}
 
 	public void GetUserName(string newUser){	//getting input from input field in main menu
 
@@ -150,10 +156,7 @@ public class MainMenu : MonoBehaviour {
 		//		Application.Quit();
 		UnityEditor.EditorApplication.isPlaying = false;
 	}
-
-	public void dropDownOutput(int option){	// recieving drop down out put from drop down element
-		Debug.Log (resolutions [option]);
-	}
+		
 
 	public void sliderValueChange (){	// change in value from slider element to control volume of game music
 	
