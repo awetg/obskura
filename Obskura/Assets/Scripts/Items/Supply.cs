@@ -13,6 +13,10 @@ public class Supply : Item {
 	{
 		if (Type == SupplyType.MedPack) {
 			player.HP += Amount;
+
+			if (player.HP > player.MaxHP)
+				player.HP = player.MaxHP;
+
 		} else if (Type == SupplyType.Ammo) {
 			player.Ammo += (int)Amount;
 		}

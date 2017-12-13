@@ -12,6 +12,7 @@ public class Player : MonoBehaviour {
 	public int Ammo = 0;
 	public int AmmoClip = 8;
 	public float HP = 100;	//player hp, updated from enemies and sent to gamecontroller to screen
+	public float MaxHP = 200;
 	public float speed;
 	private Quaternion rotate;
 	private Rigidbody2D MyRigidbody;
