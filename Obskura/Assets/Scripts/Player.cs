@@ -8,14 +8,16 @@ public enum LeftHandTool{TORCH, UVTORCH, NIGHTVISION, NULL}
 public class Player : MonoBehaviour {
 
 
-	public float Money = 0.0F;
+	public float Score = 0.0F;
+	public int Ammo = 0;
+	public int AmmoClip = 8;
+	public float HP = 100;	//player hp, updated from enemies and sent to gamecontroller to screen
 	public float speed;
 	private Quaternion rotate;
 	private Rigidbody2D MyRigidbody;
 	private Animator PlayerAnimator;
 
 	//public float Seconds;		//CAN BE DELETED EVERYWHERE IF NOT WANTED How many seconds delay before it calls/invoke Move() method
-	private float hp = 100;	//player hp, updated from enemies and sent to gamecontroller to screen
 	private Vector3 target;		//used to get mouse position as vector3 in Move() method, vector2 can't take 3 argument so can't be used
 	public float TargetStopDistance = 0.5F;		//How far player have to stop before reaching mouse position, small value is needed here
 	private bool moving = false;	//used to stop player/or stop calling Move() method, when stopDistance is reached
@@ -99,10 +101,11 @@ public class Player : MonoBehaviour {
 		}
 
 		//Shoot at right click if the player has a gun and the gun exists and is selected
-		if (Input.GetKeyDown(KeyCode.Space) && guns.ContainsKey(rightHand) 
+		if (Input.GetKeyDown(KeyCode.Space) && guns.ContainsKey(rightHand)
 			&& guns[rightHand].gun != null && guns[rightHand].inInventory) 	
 		{
-			guns[rightHand].gun.Fire (transform.position, mousePosition);
+			if (Ammo != 0)
+				guns[rightHand].gun.Fire (transform.position, mousePosition);
 		}
 
 		if (Input.GetKeyDown (KeyCode.E))
@@ -187,6 +190,7 @@ public class Player : MonoBehaviour {
 
 	public void CollectTool(LeftHandTool torch = LeftHandTool.NULL, RightHandTool gun = RightHandTool.NULL){
 		if (gun != RightHandTool.NULL && guns.ContainsKey(gun)) {
+			Ammo += AmmoClip;
 			guns [gun] = guns[gun].SetInInventory();
 			SetRightHand (gun);
 		}
@@ -210,7 +214,7 @@ public class Player : MonoBehaviour {
 
 	public void DamagePlayer(float damage){
 
-		hp = hp - damage;
+		HP = HP - damage;
 		//NOTE: The controller should command to write the player's hp to screen
 		//GameController.ShowDamage (hp);	//send hp to screen, only player hp get displayed
 
@@ -220,7 +224,7 @@ public class Player : MonoBehaviour {
 			resetCameraAt = Time.time + resetCameraAfter;
 		}
 
-		if (hp <= 0) {
+		if (HP <= 0) {
 			//			PlayerAnimator.SetBool ("Dead", true);	//start dead animation
 			//			PlayerAnimator.transform.parent = null;
 			this.enabled = false;
@@ -238,7 +242,7 @@ public class Player : MonoBehaviour {
 	}
 
 	public bool IsAlive(){
-		return (hp > 0);
+		return (HP > 0);
 	}
 
 	public bool IsPressingUseKey(){
@@ -252,7 +256,7 @@ public class Player : MonoBehaviour {
 	}
 
 	public float GetHP(){
-		return hp;
+		return HP;
 	}
 
 	public string GetLeftHandItemName(){	

@@ -9,7 +9,7 @@ public class Money : ItemMessage {
 	protected override void Action (Player player)
 	{
 		base.Action (player);
-		player.Money += Amount;
+		player.Score += Amount;
 	}
 		
 }
