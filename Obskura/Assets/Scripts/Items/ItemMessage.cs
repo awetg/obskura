@@ -22,8 +22,10 @@ public abstract class ItemMessage : MonoBehaviour {
 
 
 	void Start(){
-		dialogueBox.gameObject.SetActive (false);
-		canvasGroup = dialogueBox.GetComponent<CanvasGroup> ();
+		if (dialogueBox != null) {
+			dialogueBox.gameObject.SetActive (false);
+			canvasGroup = dialogueBox.GetComponent<CanvasGroup> ();
+		}
 	}
 
 	// Update is called once per frame

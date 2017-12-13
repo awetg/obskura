@@ -35,8 +35,6 @@ public static class Geometry {
 
 	public static void CollectVertices() {
 		CollectVertices (new string[1] {"Wall"});
-		Debug.Log (segments.Count);
-		Debug.Log (vertices.Count);
 	}
 		
 	public static List<Vector3> GetVertices(bool dyn = false) {
