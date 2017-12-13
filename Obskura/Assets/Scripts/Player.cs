@@ -216,6 +216,8 @@ public class Player : MonoBehaviour {
 
 	public void DamagePlayer(float damage){
 
+		return;
+
 		HP = HP - damage;
 		//NOTE: The controller should command to write the player's hp to screen
 		//GameController.ShowDamage (hp);	//send hp to screen, only player hp get displayed

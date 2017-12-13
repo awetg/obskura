@@ -9,7 +9,7 @@ using UnityEngine.AI;
 
 public class Baal : Enemy, ICollidableActor2D {
 	
-	public float chaseTime = 10f;	//how long enemy chase player after detection
+	public float chaseTime = 30f;	//how long enemy chase player after detection
 
 	public Vector3 centerPosition;
 	public float minTime = 1;

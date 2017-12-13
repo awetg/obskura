@@ -61,7 +61,7 @@ public static class Tags {
 			foreach (GameObject obj in cache[tag]){
 				if (obj == null)
 					continue;
-				var diff = new Vector2(obj.transform.position.x, obj.transform.transform.position.y) - center;
+				var diff = new Vector2(obj.transform.position.x, obj.transform.position.y) - center;
 				var dist = diff.magnitude;
 				if (dist <= range)
 					res.Add (obj);
