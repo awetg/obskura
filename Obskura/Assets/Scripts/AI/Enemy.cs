@@ -100,11 +100,6 @@ public abstract class Enemy : MonoBehaviour {
 		}
 		SetState (EnemyState.DEAD);
 		Tags.CacheRemove (gameObject);
-
-		var achievements = GameObject.FindGameObjectWithTag ("Achievements");
-
-		if (achievements != null)
-			achievements.GetComponent<Achievements> ().EnemyDied ();
 	}
 
 	public virtual void Alert (EnemyAlert type){}

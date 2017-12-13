@@ -105,11 +105,6 @@ public class Player : MonoBehaviour {
 			&& guns[rightHand].gun != null && guns[rightHand].inInventory) 	
 		{
 			if (Ammo != 0) {
-				var achievements = GameObject.FindGameObjectWithTag ("Achievements");
-
-				if (achievements != null)
-					achievements.GetComponent<Achievements> ().GunFired ();
-				
 				guns [rightHand].gun.Fire (transform.position, mousePosition);
 				Ammo -= 1;
 			}
@@ -290,6 +285,14 @@ public class Player : MonoBehaviour {
 		}
 		else
 			leftHand = LeftHandTool.NULL;
+	}
+
+	public void OnTriggerEnter(Collider other){
+		Debug.Log ("Entered");
+		var gc = GameObject.FindGameObjectWithTag ("GameController");
+		var controller = gc.GetComponent<GameController> ();
+
+		controller.ConcludeGame ();
 	}
 
 	private struct Tool

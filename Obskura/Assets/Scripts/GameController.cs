@@ -6,7 +6,6 @@ using UnityEngine.UI;
 public class GameController : MonoBehaviour {
 
 	public Text HpText;	//to show hp number int hp will be converted it will start 100 by default
-	float hp=100;	//hp number //Probably better to move it in Player
 
 	public Text scoreValue;
 	public Text ammoValue;
@@ -14,7 +13,7 @@ public class GameController : MonoBehaviour {
 	public GameObject restart;	//GameObjects or items to be manipulated while play
 	private bool gameOver=false; //if true restart GameObject will be active
 	public Player player;	// to access public methods of player
-
+	public OLightManager lightManager;
 
 
 	private string gameName;	//after game is won get game name for game plus
@@ -51,18 +50,14 @@ public class GameController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		float hpCompare = player.GetHP ();
 
-		if (hp != hpCompare) {
-			Debug.Log ("hp changed");
-			hp = hpCompare;
-			ShowDamage(hp);
-			if (hp <= 0) {
+			ShowDamage(player.HP);
+
+			if (player.HP <= 0) {
 				restart.SetActive (true);
 				gameOver = true;
 				UnityEditor.EditorApplication.isPaused = false;
 			}
-		}
 
 		ShowAmmo (player.Ammo);
 		ShowScore (player.Score);
@@ -88,6 +83,16 @@ public class GameController : MonoBehaviour {
 			}
 		}
 
+	}
+
+	public void ConcludeGame(){
+		lightManager.Overlay = new Color (1.0F, 1.0F, 1.0F);
+		StartCoroutine (GameEnded ());
+		SceneManager.LoadScene ("MainMenu");
+	}
+
+	public IEnumerator GameEnded(){
+		yield return new WaitForSeconds (3.0F);
 	}
 
 

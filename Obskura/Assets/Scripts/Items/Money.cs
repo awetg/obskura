@@ -10,11 +10,6 @@ public class Money : ItemMessage {
 	{
 		base.Action (player);
 		player.Score += Amount;
-
-		var achievements = GameObject.FindGameObjectWithTag ("Achievements");
-
-		if (achievements != null)
-			achievements.GetComponent<Achievements> ().CoinCollected ();
 	}
 		
 }
