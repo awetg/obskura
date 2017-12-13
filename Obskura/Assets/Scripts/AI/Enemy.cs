@@ -100,6 +100,11 @@ public abstract class Enemy : MonoBehaviour {
 		}
 		SetState (EnemyState.DEAD);
 		Tags.CacheRemove (gameObject);
+
+		var achievements = GameObject.FindGameObjectWithTag ("Achievements");
+
+		if (achievements != null)
+			achievements.GetComponent<Achievements> ().EnemyDied ();
 	}
 
 	public virtual void Alert (EnemyAlert type){}
@@ -149,7 +154,7 @@ public abstract class Enemy : MonoBehaviour {
 	}
 
 	public virtual void GetDamaged(float damage){
-		enemyHp -= damage;
+		enemyHp -= damage * (1F /  GameData.GetDifficultyMultiplier());
 		Alert (EnemyAlert.DAMAGE);
 	}
 
@@ -159,7 +164,7 @@ public abstract class Enemy : MonoBehaviour {
 		
 		stopLightEffectAt = Time.time + 0.5f;
 
-		enemyHp -= damage;
+		enemyHp -= damage * (1F / GameData.GetDifficultyMultiplier());
 		Alert (EnemyAlert.LIGHT);
 	}
 

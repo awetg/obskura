@@ -104,8 +104,14 @@ public class Player : MonoBehaviour {
 		if (Input.GetKeyDown(KeyCode.Space) && guns.ContainsKey(rightHand)
 			&& guns[rightHand].gun != null && guns[rightHand].inInventory) 	
 		{
-			if (Ammo != 0)
-				guns[rightHand].gun.Fire (transform.position, mousePosition);
+			if (Ammo != 0) {
+				var achievements = GameObject.FindGameObjectWithTag ("Achievements");
+
+				if (achievements != null)
+					achievements.GetComponent<Achievements> ().GunFired ();
+				
+				guns [rightHand].gun.Fire (transform.position, mousePosition);
+			}
 		}
 
 		if (Input.GetKeyDown (KeyCode.E))

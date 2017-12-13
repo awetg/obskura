@@ -100,7 +100,11 @@ public class Obskura : Enemy, ICollidableActor2D {
 
 	public override void GetDamagedByLight (float damage)
 	{
-		base.GetDamagedByLight (-damage * 0.2f);
+		//Receive health when damaged by light
+		//NOTE: Since the difficulty multiplier(dm) scales the damage to every enemy, we need to multiply
+		//      by dm^2 to scale a negative damage (health increment) appropriately
+		//      see (1/dm) * dm^2 = dm -> Increment of negative damage with difficulty
+		base.GetDamagedByLight (-damage * 0.2f * GameData.GetDifficultyMultiplier() * GameData.GetDifficultyMultiplier());
 	}
 
 	//*** ICollidableActor2D Implementation ***

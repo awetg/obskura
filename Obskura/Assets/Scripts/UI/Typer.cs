@@ -38,8 +38,7 @@ public class Typer : MonoBehaviour {
 			GetComponent<AudioSource> ().PlayOneShot (typerClip);
 			yield return new WaitForSeconds (typeDelay);
 		}
-
-		StopCoroutine (TypeOut ());
+			
 		yield return new WaitForSeconds (typeOutWait);
 		StartCoroutine (TypeOut ());
 	}
@@ -52,5 +51,7 @@ public class Typer : MonoBehaviour {
 			GetComponent<AudioSource> ().PlayOneShot (typerClip);
 			yield return new WaitForSeconds (typeDelay);
 		}
+
+		message = "";
 	}
 }
