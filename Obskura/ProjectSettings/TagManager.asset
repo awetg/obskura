@@ -9,6 +9,8 @@ TagManager:
   - Teleporter
   - Obskura
   - obskura
+  - Paper
+  - Achievements
   layers:
   - Default
   - TransparentFX
