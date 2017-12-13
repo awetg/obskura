@@ -83,6 +83,9 @@ public class OBullet : MonoBehaviour {
 
 		//First check for collision
 		foreach(ICollidableActor2D c in collidables){
+			if (c != null && !c.IsColliderActive ())
+				continue;
+			
 			var dstv = new Vector2(transform.position.x, transform.position.y) - c.GetPosition();
 			var dist = dstv.magnitude;
 			if (c.IsColliderActive() && dist < c.GetSize()){

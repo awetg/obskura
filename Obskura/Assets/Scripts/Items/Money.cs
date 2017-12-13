@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Money : Item {
+public class Money : ItemMessage {
 
 	public float Amount = 10.0f;
 

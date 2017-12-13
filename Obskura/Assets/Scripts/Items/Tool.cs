@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Tool : Item {
+public class Tool : ItemMessage {
 
 	public LeftHandTool TorchType;
 	public RightHandTool GunType;

@@ -9,7 +9,7 @@ using UnityEngine.UI;
 public class Typer : MonoBehaviour {
 
 	public string message = "write here";
-	public float startDelay = 1f;
+	public float startDelay = 0.5f;
 	public float typeDelay = 0.02f;
 	public AudioClip typerClip;
 	private Text textHolder;

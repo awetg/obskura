@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Papers : Item {
+public class Papers : ItemMessage {
 
 //	public string Title;
 //	public string Text;

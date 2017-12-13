@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class SpawnerTrigger : Item {
 
-	public string SpawnerTag = "Spawner";
+	public string SpawnerTagBase = "Spawner";
 
 	// Use this for initialization
 	void Start () {
@@ -15,9 +15,9 @@ public class SpawnerTrigger : Item {
 	
 	protected override void Action (Player player)
 	{
-		var objs = GameObject.FindGameObjectsWithTag (SpawnerTag);
+		var objs = GameObject.FindGameObjectsWithTag (SpawnerTagBase);
 
-		objs.Where (obj => obj.tag == SpawnerTag && obj.GetComponent<Spawner> () != null)
+		objs.Where (obj => obj.tag == SpawnerTagBase && obj.GetComponent<Spawner> () != null)
 			.Select (obj => obj.GetComponent<Spawner> ()).Cast<Spawner> ().ToList ()
 			.ForEach (spawner => spawner.Trigger ());
 	}
