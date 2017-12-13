@@ -62,13 +62,10 @@ public abstract class ItemMessage : MonoBehaviour {
 			}
 			if (DestroyAfterTrigger) {
 				gameObject.GetComponent<SpriteRenderer> ().enabled = false;
-				StartCoroutine (typer.TypeIn(typeOutOther));
 				StartCoroutine (FadeIn ());
 				StartCoroutine (lateDeactivate ());
-
 			}
-			else {	
-				StartCoroutine (typer.TypeIn (typeOutPaper));
+			else {
 				StartCoroutine (FadeIn ());
 				StartCoroutine (lateDeactivate ());	// Fadeout and late deactivate
 			}
