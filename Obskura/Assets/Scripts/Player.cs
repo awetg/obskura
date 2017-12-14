@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿//Writen by Awet, Manuel and Elsa
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -19,7 +20,7 @@ public class Player : MonoBehaviour {
 	private Rigidbody2D MyRigidbody;
 	private Animator PlayerAnimator;
 
-	//public float Seconds;		//CAN BE DELETED EVERYWHERE IF NOT WANTED How many seconds delay before it calls/invoke Move() method
+
 	private Vector3 target;		//used to get mouse position as vector3 in Move() method, vector2 can't take 3 argument so can't be used
 	public float TargetStopDistance = 0.5F;		//How far player have to stop before reaching mouse position, small value is needed here
 	private bool moving = false;	//used to stop player/or stop calling Move() method, when stopDistance is reached
@@ -187,6 +188,7 @@ public class Player : MonoBehaviour {
 		whereToMove.Normalize(); //normalise turns whereToMove vector into unit vector.
 		transform.position = playerPosition + whereToMove * speed * Time.deltaTime; //move player to new positon using unit vector WhereToMove
 
+		//Move the camera with the player
 		var camera = GameObject.FindGameObjectWithTag ("MainCamera");
 
 		if (camera != null) {
@@ -194,6 +196,11 @@ public class Player : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Add a gun or a torch or both to the Player's inventory.
+	/// </summary>
+	/// <param name="torch">Torch.</param>
+	/// <param name="gun">Gun.</param>
 	public void CollectTool(LeftHandTool torch = LeftHandTool.NULL, RightHandTool gun = RightHandTool.NULL){
 		if (gun != RightHandTool.NULL && guns.ContainsKey(gun)) {
 			Ammo += AmmoClip;
@@ -206,18 +213,29 @@ public class Player : MonoBehaviour {
 		}
 	}
 
-
+	/// <summary>
+	/// Set the torch the player has in their right hand
+	/// </summary>
+	/// <param name="item">Item.</param>
 	public void SetLeftHand(LeftHandTool item){
 		if (item != leftHand) {	//do only if new_weapon is different from currentWeapon
 			ChangeTorch(item);
 		}
 	}
 
+	/// <summary>
+	/// Set the gun the player has in their right hand
+	/// </summary>
+	/// <param name="item">Item.</param>
 	public void SetRightHand(RightHandTool item){
 		if (item != rightHand)
 			rightHand = item;
 	}
 
+	/// <summary>
+	/// Damages the player.
+	/// </summary>
+	/// <param name="damage">Damage.</param>
 	public void DamagePlayer(float damage){
 
 		HP = HP - damage;
@@ -225,14 +243,14 @@ public class Player : MonoBehaviour {
 		//GameController.ShowDamage (hp);	//send hp to screen, only player hp get displayed
 
 		if (lightManager != null) {
+			//Create a red overlay in case of damage
 			cameraDamage += damage / 20.0f;
 			lightManager.Overlay =  new Color(Mathf.Min(cameraDamage, 1.0F), 0, 0);
 			resetCameraAt = Time.time + resetCameraAfter;
 		}
 
 		if (HP <= 0) {
-			//			PlayerAnimator.SetBool ("Dead", true);	//start dead animation
-			//			PlayerAnimator.transform.parent = null;
+			//Destroy the player and the overlay
 			this.enabled = false;
 			gameObject.GetComponent<BoxCollider2D> ().enabled = false;
 			CancelInvoke ();
@@ -243,41 +261,73 @@ public class Player : MonoBehaviour {
 		}	
 	}
 
+	/// <summary>
+	/// Tell the player they are in strong light, so they are safe
+	/// </summary>
 	public void SetInStrongLight(){
 		outOfLightAt = Time.time + outOfLightAfter;
 	}
 
+	/// <summary>
+	/// Is the player alive?
+	/// </summary>
+	/// <returns><c>true</c> if the player is alive; otherwise, <c>false</c>.</returns>
 	public bool IsAlive(){
 		return (HP > 0);
 	}
 
+	/// <summary>
+	/// Determines whether this player is pressing use key.
+	/// </summary>
+	/// <returns><c>true</c> if this player is pressing use key; otherwise, <c>false</c>.</returns>
 	public bool IsPressingUseKey(){
 		return usePressed;
 	}
 
+	/// <summary>
+	/// Determines whether this player is in strong light.
+	/// </summary>
+	/// <returns><c>true</c> if this player is in strong light; otherwise, <c>false</c>.</returns>
 	public bool IsInStrongLight(){
 		if (Time.time > outOfLightAt)
 			return false;
 		return true;
 	}
 
+	/// <summary>
+	/// Gets the HP.
+	/// </summary>
+	/// <returns>The HP.</returns>
 	public float GetHP(){
 		return HP;
 	}
 
+	/// <summary>
+	/// Gets the name of the left hand item.
+	/// </summary>
+	/// <returns>The left hand item name.</returns>
 	public string GetLeftHandItemName(){	
 		if (leftHand != LeftHandTool.NULL && torches.ContainsKey (leftHand))
 			return torches [leftHand].name;
 		return "";
 	}
 
+	/// <summary>
+	/// Gets the name of the right hand item.
+	/// </summary>
+	/// <returns>The right hand item name.</returns>
 	public string GetRightHandItemName(){	
 		if (rightHand != RightHandTool.NULL && torches.ContainsKey (leftHand))
 			return guns [rightHand].name;
 		return "";
 	}
 
+	/// <summary>
+	/// Changes the torch.
+	/// </summary>
+	/// <param name="item">Item.</param>
 	public void ChangeTorch(LeftHandTool item){
+		//Changes the torch, handling the switching on and off
 		if (leftHand != LeftHandTool.NULL && torches.ContainsKey (leftHand) && torches [leftHand].inInventory) {
 			torches [leftHand].light.IsOn = false;
 		}
@@ -291,20 +341,18 @@ public class Player : MonoBehaviour {
 			leftHand = LeftHandTool.NULL;
 	}
 
-	public void OnTriggerEnter(Collider other){
-		Debug.Log ("Entered");
-		var gc = GameObject.FindGameObjectWithTag ("GameController");
-		var controller = gc.GetComponent<GameController> ();
-
-		controller.ConcludeGame ();
-	}
-
+	/// <summary>
+	/// Makes the collect item sound.
+	/// </summary>
 	public void MakeCollectSound(){
 		if (CollectSound != null) {
 			CollectSound.PlayOneShot (CollectSound.clip);
 		}
 	}
 
+	/// <summary>
+	/// Represents a Tool the Player can own.
+	/// </summary>
 	private struct Tool
 	{
 		public OLight light;

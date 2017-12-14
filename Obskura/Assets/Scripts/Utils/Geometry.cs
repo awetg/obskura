@@ -1,12 +1,17 @@
-﻿using System.Collections;
+﻿//Written by Manuel
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+/// <summary>
+/// World geometry utils.
+/// </summary>
 public static class Geometry {
 
 	//To calculate a point outside the wall
 	const float margin = 1;
+	//When to consider two near vertices the same one
 	const float verticesResolution = 0.01f;
 
 	static List<Segment2D> segments = new List<Segment2D>(); //Segments of the walls or light blocking objects
@@ -16,14 +21,24 @@ public static class Geometry {
 	static List<Polygon2D> walls = new List<Polygon2D>(); //Walls as polygon (for collision checking)
 	static List<Polygon2D> dynWalls = new List<Polygon2D>(); //Walls as polygon (for collision checking)
 
+	//Segments longer than this will be cut in pieces
+	//NOTE: This is an optimization to allow the lights to be local:
+	//		A light will always be able to take into account only its surroundings and
+	//		still have all the vertices of a segment inside its influence if the segments has a maximum length
 	private static float segMaxLength = 8.0F;
 
+	/// <summary>
+	/// Get the maximum length of one segment, after which it will be broken in additional ones
+	/// </summary>
 	public static float MaxSegmentLength {
 		get{
 			return segMaxLength;
 		}
 	}
 
+	/// <summary>
+	/// Clear all the cachedd segments, verticesand walls.
+	/// </summary>
 	public static void Clear(){
 		segments.Clear ();
 		dynSegments.Clear();
@@ -33,10 +48,17 @@ public static class Geometry {
 		dynWalls.Clear ();
 	}
 
+	/// <summary>
+	/// Collects the vertices of the walls.
+	/// </summary>
 	public static void CollectVertices() {
 		CollectVertices (new string[1] {"Wall"});
 	}
 		
+	/// <summary>
+	/// Returns the cached vertices
+	/// </summary>
+	/// <returns>The vertices.</returns>
 	public static List<Vector3> GetVertices(bool dyn = false) {
 		if (dyn)
 			return dynVertices;
@@ -44,6 +66,10 @@ public static class Geometry {
 			return vertices;
 	}
 
+	/// <summary>
+	/// Returns the cached segments
+	/// </summary>
+	/// <returns>The segments.</returns>
 	public static List<Segment2D> GetSegments(bool dyn = false) {
 		if (dyn)
 			return dynSegments;
@@ -51,6 +77,10 @@ public static class Geometry {
 			return segments;
 	}
 
+	/// <summary>
+	/// Returns the cached vertices within a range from a point
+	/// </summary>
+	/// <returns>The vertices.</returns>
 	public static List<Vector3> GetVertices(Vector2 pos, float range = 8.0F) {
 		List<Vector3> borderVertices = GetSquareCornersVertices (pos, range);
 
@@ -61,6 +91,10 @@ public static class Geometry {
 
 	}
 
+	/// <summary>
+	/// Returns the cached segments within a range from a point
+	/// </summary>
+	/// <returns>The segments.</returns>
 	public static List<Segment2D> GetSegments(Vector2 pos, float range = 8.0F) {
 		List<Segment2D> borderSegments = GetSquareCornersSegments (pos, range); //GetSquareBorderSegments (pos, range);
 
@@ -75,6 +109,12 @@ public static class Geometry {
 
 	}
 
+	/// <summary>
+	/// Get the cached walls within a range
+	/// </summary>
+	/// <returns>The walls.</returns>
+	/// <param name="pos">Position.</param>
+	/// <param name="range">Range.</param>
 	public static List<Polygon2D> GetWalls(Vector2 pos, float range = 8.0F) {
 		var dynWs = dynWalls.Where (w => 
 			w.segments.Exists (s => 
@@ -88,7 +128,13 @@ public static class Geometry {
 		).Concat(dynWalls).ToList();
 	}
 
-
+	/// <summary>
+	/// Collects the vertices, segments and walls into the cache.
+	/// </summary>
+	/// <param name="tags">Tags.</param>
+	/// <param name="dyn">If set to <c>true</c> dyn.</param>
+	/// <param name="worldBorders">If set to <c>true</c> world borders.</param>
+	/// <param name="maxSegLength">Max seg length.</param>
 	public static void CollectVertices(string[] tags, bool dyn = false, bool worldBorders = true, float maxSegLength = 8.0F)
 	{
 		if (!dyn) {
@@ -152,14 +198,23 @@ public static class Geometry {
 
 	}
 
+	/// <summary>
+	/// Determines if a point is in a wall within a certain range
+	/// </summary>
 	public static bool IsPointInAWall(Vector2 p, float range = 8.0F){
 		return IsPointInAWall(new Vector3(p.x, p.y, 0), segMaxLength);
 	}
 
+	/// <summary>
+	/// Determines if a point is in a wall within a certain range
+	/// </summary>
 	public static bool IsPointInAWall(Vector3 p, float range = 8.0F){
 		return GetWalls(p, segMaxLength).Exists (w => PolygonContainsPoint (w, p));
 	}
 
+	/// <summary>
+	/// Determines if any of the verttices of a square are in a wall within a certain range
+	/// </summary>
 	public static bool IsSquareInAWall(Vector3 p, float size, float range = 8.0F){
 		float halfSide = size / 2;
 		List<Vector2> vertices = new List<Vector2> (4);
@@ -170,6 +225,9 @@ public static class Geometry {
 		return vertices.Exists(v => IsPointInAWall(v, segMaxLength));
 	}
 
+	/// <summary>
+	/// Determines if any of the vertices of a rectangle are in a wall
+	/// </summary>
 	public static bool IsRectangleInAWall(Vector3 p, float w, float h){
 		float hw = w / 2, hh = h / 2;
 		List<Vector2> vertices = new List<Vector2> (4);
@@ -180,6 +238,9 @@ public static class Geometry {
 		return vertices.Exists(v => IsPointInAWall(v));
 	}
 
+	/// <summary>
+	/// Is there a direct line of sight between a and b?
+	/// </summary>
 	public static bool IsInLineOfSight(Vector2 a, Vector2 b){
 		return IsInLineOfSight (new Vector3 (a.x, a.y, 0), new Vector3 (b.x, b.y, 0));
 	}
@@ -215,18 +276,25 @@ public static class Geometry {
 		var allIntersct = polygon.segments.Select (s => Geometry.GetIntersection (ray, s));
 		// Find the number of intersections until the point (param < 1.0F)
 		var intersectCount = allIntersct.Where (x => x.v != null && x.param <= 1.0F).Count();
-
+		//If there is an odd number of intersection we are inside the polygon, if it's even we are outside
 		if (intersectCount % 2 != 0)
 			return true;
 		else
 			return false;
 	}
 		
+	/// <summary>
+	/// Returns a list of collidables with a certain tag, intersected by a ray.
+	/// </summary>
+	/// <returns>The actors intersecting ray with tags.</returns>
 	public static List<ICollidableActor2D> GetActorsIntersectingRayWithTags(Vector2 a, Vector2 b, List<string> tags, bool stopAtWalls = true){
 		Ray2D ray = new Ray2D (a, b);
+
+		//Get all the object with the tag
 		var gos = Tags.GameObjectsWithTags (tags).Where(g => g.GetComponent<ICollidableActor2D>() != null)
 			.Select(g => g.GetComponent<ICollidableActor2D>()).Cast<ICollidableActor2D>();
 
+		//Should we stop the ray at the first wall?
 		if (stopAtWalls) {
 			var allIntersct = 
 				segments.Select (s => Geometry.GetIntersection (ray, s)).Where (x => x.v != null);
@@ -235,6 +303,7 @@ public static class Geometry {
 				// Find the nearest intersection
 				Intersection nearestIntersection = allIntersct.Min();
 
+				//Owerwrite the end of the ray with the position of the nearest wall intersection
 				ray.b = new Vector2(nearestIntersection.v.Value.x, nearestIntersection.v.Value.y);
 			}
 
@@ -242,6 +311,7 @@ public static class Geometry {
 
 		float dist = (ray.a - ray.b).magnitude;
 
+		//Check if the ray intesects any of the segments between the vertices of the square of the size of the actor
 		return gos.Where (g => {
 			Vector2 pos = g.GetPosition();
 			float size = g.GetSize() / 2;
@@ -257,6 +327,13 @@ public static class Geometry {
 
 	}
 
+	/// <summary>
+	/// Gets the first intersection of a ray with a wall.
+	/// </summary>
+	/// <returns>The first intersection.</returns>
+	/// <param name="a">The alpha component.</param>
+	/// <param name="b">The blue component.</param>
+	/// <param name="maxDistance">Max distance.</param>
 	public static Intersection GetFirstIntersection(Vector2 a, Vector2 b, float maxDistance){
 		Ray2D ray = new Ray2D (a, b);
 
@@ -404,6 +481,12 @@ public static class Geometry {
 
 	}
 
+	/// <summary>
+	/// Gets the segments of a polygon from clockwise vertices.
+	/// Note: Remember to apply gameObject.transform.TransformPoint if the vertices if from a mesh
+	/// </summary>
+	/// <returns>The segments from clockwise vertices.</returns>
+	/// <param name="verts">Sorted verts in world coordinates.</param>
 	public static List<Segment2D> GetSegmentsFromSortedVertices(List<Vector3> verts){
 		List<Segment2D> res = new List<Segment2D> ();
 		for (int i=0;i < verts.Count;i++)
@@ -422,12 +505,21 @@ public static class Geometry {
 		return res;
 	}
 
+	/// <summary>
+	/// Does the ray intersect with any of this segments?
+	/// </summary>
+	/// <returns><c>true</c>, if intersects with any was rayed, <c>false</c> otherwise.</returns>
+	/// <param name="ray">Ray.</param>
+	/// <param name="segments">Segments.</param>
 	public static bool RayIntersectsWithAny(Ray2D ray, List<Segment2D> segments){
 		return segments.Exists (s => GetIntersection (ray, s).v != null);
 	}
 
-	// Find intersection of ray and segment
+	// Find intersection of ray and segment, adapted from the javascript tutorial
 	// http://ncase.me/sight-and-light/
+	/// <summary>
+	/// Find intersection between a ray and a segment.
+	/// </summary>
 	public static Intersection GetIntersection(Ray2D ray, Segment2D segment)
 	{
 		Intersection res = new Intersection();
@@ -476,6 +568,9 @@ public static class Geometry {
 
 	}
 
+	/// <summary>
+	/// Gets the vertices of a square
+	/// </summary>
 	public static List<Vector3> GetSquareCornersVertices(Vector2 center, float size) {
 		float x = center.x, y = center.y;
 		Vector3 b1 = new Vector3(x-size, y-size, 0); // bottom left
@@ -486,6 +581,9 @@ public static class Geometry {
 		return new List<Vector3> { b1, b2, b3, b4 };
 	} 
 
+	/// <summary>
+	/// Gets the sides (segments) of a square.
+	/// </summary>
 	public static  List<Segment2D> GetSquareCornersSegments(Vector2 center, float size) {
 		return GetSegmentsFromSortedVertices(GetSquareCornersVertices(center, size));
 	}
@@ -500,30 +598,30 @@ public static class Geometry {
 		List<Segment2D> resSegs = new List<Segment2D>(segments.Count * 2);
 		List<Vector3> resVects = new List<Vector3> (vertices.Count * 2);
 
+		//For each segment in the cache
 		foreach (Segment2D s in segments) {
 			Vector2 diff = s.b - s.a;
-			float dist = diff.magnitude;
+			float dist = diff.magnitude; //Calculate its length
 
-			if (dist > maxLength) {
-				int num = (int)(dist / maxLength);
+			if (dist > maxLength) { //If the length is greater than the maximum
+				int num = (int)(dist / maxLength); //calculate the number of pieces
 				Vector2 oldv = s.a;
 
+				//Generate segments and vertices composing the pieces
 				for (int i = 1; i <= num; i++) {
 					Vector2 newv = oldv + (diff * (maxLength / dist));
 					resSegs.Add (new Segment2D (oldv, newv));
 					resVects.Add (new Vector3 (newv.x, newv.y, -1.0F));
-
-					//Debug.DrawLine (new Vector3 (newv.x - 0.2F, newv.y - 0.2F, -10F), new Vector3 (newv.x + 0.2F, newv.y + 0.2F, -10F), Color.blue, 100F);
-
 					oldv = newv;
 				}
-
+				//Add them to the result
 				resSegs.Add (new Segment2D (oldv, s.b));
 
 			} else {
 				resSegs.Add (s);
 			}
 		}
+		//Update the cache
 		segments.Clear ();
 		segments.AddRange(resSegs);
 		vertices.AddRange (resVects);
@@ -561,6 +659,9 @@ public struct Intersection : System.IComparable<Intersection>
 
 }
 
+/// <summary>
+/// Location and its pseudoangle (useful to order points by angle efficiently)
+/// </summary>
 public struct PseudoAngleLocationTuple : System.IComparable<PseudoAngleLocationTuple>
 {
 	public float pAngle {get;set;}
@@ -571,7 +672,9 @@ public struct PseudoAngleLocationTuple : System.IComparable<PseudoAngleLocationT
 	}
 }
 
-//Ray from A to B
+/// <summary>
+/// Ray from point A to point B
+/// </summary>
 public struct Ray2D
 {
 	public Vector2 a;
@@ -590,7 +693,9 @@ public struct Ray2D
 	}
 }
 
-//Segment from a to b
+/// <summary>
+/// Segment from point a to point b
+/// </summary>
 public struct Segment2D
 {
 	public Vector2 a;
@@ -604,6 +709,9 @@ public struct Segment2D
 
 }
 
+/// <summary>
+/// Poligon: Set of segments and definition of inside/outside.
+/// </summary>
 public struct Polygon2D
 {
 	public List<Segment2D> segments;

@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+/// <summary>
+/// Trigger the spawning object based on a certain condition.
+/// NOT USED IN THE FINAL GAME CODE
+/// </summary>
 public class SpawnerTrigger : Item {
 
 	public string SpawnerTagBase = "Spawner";

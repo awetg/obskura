@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Type in the dialoguebox.
+/// </summary>
 public class Typer : MonoBehaviour {
 
 	public string message = "write here";

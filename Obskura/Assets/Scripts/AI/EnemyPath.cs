@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using UnityEngine;
 
+/// <summary>
+/// Path for Hades to follow when walking idle.
+/// </summary>
 public class EnemyPath : MonoBehaviour {
 	
 	public EnemyPath nextNode;

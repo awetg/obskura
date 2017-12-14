@@ -29,15 +29,9 @@ public class GameController : MonoBehaviour {
 
 	public Canvas dialogueBox;
 
-
-
-
-//	public OLightManager lightManager; // See OLightManager.cs
-
 	void Awake()
 	{
 		this.tag = "GameController";
-		//FIXME: Add code to check if the game controller is unique and otherwise throw an exception
 	}
 
 	// Use this for initialization
@@ -51,13 +45,13 @@ public class GameController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-			ShowDamage(player.HP);
+		ShowDamage(player.HP);
 
-			if (player.HP <= 0) {
-				restart.SetActive (true);
-				gameOver = true;
-				//UnityEditor.EditorApplication.isPaused = false;
-			}
+		//If tthe player dies, it's game over
+		if (player == null || player.HP <= 0) {
+			restart.SetActive (true);
+			gameOver = true;
+		}
 
 		ShowAmmo (player.Ammo);
 		ShowScore (player.Score);
@@ -85,37 +79,51 @@ public class GameController : MonoBehaviour {
 
 	}
 
+	/// <summary>
+	/// Concludes the game.
+	/// </summary>
 	public void ConcludeGame(){
+		//Fill the screen with white light
 		lightManager.Overlay = new Color (1.0F, 1.0F, 1.0F);
 		StartCoroutine (GameEnded ());
 		SceneManager.LoadScene ("MainMenu");
 	}
 
+	/// <summary>
+	/// Called when the game ends, to wait for the player to see the white light.
+	/// </summary>
+	/// <returns>The ended.</returns>
 	public IEnumerator GameEnded(){
 		yield return new WaitForSeconds (3.0F);
 	}
 
-
-	void ShowDamage(float hpamount){	//called from playerMovement() after damage registered
-		HpText.text = hpamount.ToString (); //conver hp(int) to string
+	/// <summary>
+	/// Shows the HP of the player on sceen.
+	/// </summary>
+	/// <param name="hpamount">Hpamount.</param>
+	void ShowDamage(float hpamount){	
+		HpText.text = hpamount.ToString (); 
 	}
 
-	void ShowScore(float score){	//called from playerMovement() after damage registered
-		scoreValue.text = score.ToString (); //conver hp(int) to string
+	/// <summary>
+	/// Shows the score on screen.
+	/// </summary>
+	/// <param name="score">Score.</param>
+	void ShowScore(float score){	
+		scoreValue.text = score.ToString ();
 	}
 
-	void ShowAmmo(int ammo){	//called from playerMovement() after damage registered
-		ammoValue.text = ammo.ToString (); //conver hp(int) to string
+	/// <summary>
+	/// Shows the ammo on screen.
+	/// </summary>
+	/// <param name="ammo">Ammo.</param>
+	void ShowAmmo(int ammo){	
+		ammoValue.text = ammo.ToString (); 
 	}
 
-
-
-
-
-
-	/////////////////////////    MENU CONTROL FUNCTIONS
-
-
+	/// <summary>
+	/// Called when the exit button gets pressed.
+	/// </summary>
 	public void ExitB(){	// ON Exit button click do this 
 		if (exitClicked) {
 			exitClicked = false;
@@ -128,13 +136,18 @@ public class GameController : MonoBehaviour {
 		}
 	}
 
-
+	/// <summary>
+	/// Shows the in game menu.
+	/// </summary>
 	public void ShowMenu(){	
 		menuCanvas.gameObject.SetActive(true);
 		Time.timeScale = 0.0f;
 
 	}
 
+	/// <summary>
+	/// Closes the is game menu.
+	/// </summary>
 	public void CloseMenu(){	// if menu exited using escape key
 		exitClicked = false;
 		exitPanel.gameObject.SetActive(false);
@@ -142,36 +155,37 @@ public class GameController : MonoBehaviour {
 		Time.timeScale = 1.0f;
 	}
 
+	/// <summary>
+	/// Called when the mouse hovers a button, plays a sound.
+	/// </summary>
 	public void ButtonHover(){	// On hover of any button play sound
 		hover.GetComponent<AudioSource> ().Play ();
 	}
 
+	/// <summary>
+	/// Called when the mouse clicks a button, plays a sound.
+	/// </summary>
 	public void ButtonClick(){	// On click of any button play sound
 		click.GetComponent<AudioSource> ().Play ();
 	}
+	/// <summary>
+	/// The exit "no" button has been clicked, hide the "yes" "no".
+	/// </summary>
 	public void NoB(){
 		exitClicked = false;
 		exitPanel.gameObject.SetActive (false);
 	}
+
+	/// <summary>
+	/// The "exit" button has been pressed and confirmed.
+	/// </summary>
 	public void EndGame(){	//if yes button for exit is click go to main menu
 		SceneManager.LoadScene("MainMenu");
 	}
 		
-	public void GetGameName(string newGameName){	//getting input from input field in end game menu
-
-		gameName = newGameName;
-	}
-
-	public void EnterGameNameB(){
-	
-		if (gameName == null)
-			tipTextExit.gameObject.SetActive (true);
-		else {
-			//write gameName to database
-			SceneManager.LoadScene ("MainMenu");
-		}
-	}
-
+	/// <summary>
+	/// Click on the button to close tthe DialogueBox
+	/// </summary>
 	public void typerButtonclick()
 	{
 		dialogueBox.gameObject.SetActive (false);

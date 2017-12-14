@@ -1,48 +1,54 @@
 ﻿/// <summary>
-/// Enemy
-/// Thanks to this https://docs.unity3d.com/Manual/NavMesh-BuildingComponents.html , we cand have navmesh in XY plane (2D)
+/// Baal.
+/// Written by Manuel, Awet and Elsa.
 /// </summary>
 
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
+/// <summary>
+/// Teleporting enemy.
+/// </summary>
 public class Baal : Enemy, ICollidableActor2D {
 	
 	public float chaseTime = 30f;	//how long enemy chase player after detection
 
-	public Vector3 centerPosition;
-	public float minTime = 1;
-	public float maxTime =5;
-	public float maxDistance = 3;
-	public float chasingSpeed = 0.5F;
-	public float sightDistance = 50F;
-	public float attackRange = 3f;
+	public Vector3 centerPosition; //Position of the point the Baal is going to teleport around
+	public float minTime = 1; //Minimum interval between two teleports
+	public float maxTime =5; //Maximum interval between two teleports
+	public float maxDistance = 3; //Max teleport distance from centerPosition
+	public float chasingSpeed = 0.5F; //Speed of movement of the centerPosition toward the player during chase
+	public float sightDistance = 50F; //Distance at which the player can be seen
+	public float attackRange = 3f; //Range at which the Baal will infert damage
 
-	public AudioSource AudioTeleport;
+	public AudioSource AudioTeleport; //Sound the player hear when next to the Baal
 
+	private Vector3 originalPosition; // Original position of the Baal, before chase (to restore if the Baal is blocked in a wall)
 
-	private Vector3 originalPosition;
-
-	float nextTeleportTime=0;
-	float disableTeleportEffectAt=0;
-	float endChaseTime = 0;
+	float nextTeleportTime=0; //When to teleport
+	float disableTeleportEffectAt=0; //When to disable the teleport graphical effect
+	float endChaseTime = 0; //When to end the chase
 	bool isTeleportEffectOn = false;
 
 	// Use this for initialization
 	protected override void Start () {
 		SetState(startState);	//set state to idle from none
-		centerPosition = transform.position;
+
+		centerPosition = transform.position; //The spawning center is the initial position of the object
+
 		//Override here the default values from Enemy
 		//Note: If they have been set in the inspector, their value will be != 0, so don't override
 		if (enemyHp == 0)
 			enemyHp = 100f;		
 		if (damagePerSecond == 0)
 			damagePerSecond = 50f;
-		
+
+		//How long will the gameObject survive after the enemy is dead
 		destroyAfter = 0.1f;
 
-		//STATES:
+		//STATES TABLE:
+		//To every state associate a behaviour, composed of an init, an update and an end delegate
 		states.Add (EnemyState.IDLE, new EnemyBehaviour (StartIdle, ContinueIdle, EndIdle));
 		states.Add (EnemyState.CHASE, new EnemyBehaviour (StartChase, ContinueChase, EndChase));
 		states.Add (EnemyState.ATTACK, new EnemyBehaviour (StartAttack, ContinueAttack, EndAttack));
@@ -53,8 +59,9 @@ public class Baal : Enemy, ICollidableActor2D {
 		base.Start ();
 	}
 		
-	//Teleport code written by Elsa
-	//If the time delay for the next teleport has elapsed, try to teleport
+	/// <summary>
+	/// If the time delay for the next teleport has elapsed, try to teleport.
+	/// </summary>
 	void TeleportIfTime(){
 
 		//Play the effect if less than 0.3 seconds are left
@@ -63,9 +70,11 @@ public class Baal : Enemy, ICollidableActor2D {
 			disableTeleportEffectAt = Time.time + 0.6f;
 		}
 
+		//Disable the effect if enough time has elapsed
 		if (isTeleportEffectOn && Time.time > disableTeleportEffectAt)
 			TeleportEffect (false);
 
+		//If it's time to teleport...
 		if (Time.time > nextTeleportTime) 
 		{	
 			System.Random rnd = new System.Random();
@@ -73,35 +82,45 @@ public class Baal : Enemy, ICollidableActor2D {
 			const int maxTry = 3;
 			int count = 0;
 
+			//... try to teleport to maximum maxTry random positions
 			do {
 				if (count > maxTry){
+					//If we ended up in a wall for more than maxTry times, go back to the starting point
 					newpos = originalPosition;
 					break;
 				}
-				//teleport code
+				//generate the random position
 				float dx = (float)rnd.NextDouble () * maxDistance; 
 				float dy = (float)rnd.NextDouble () * maxDistance;
 				newpos = centerPosition + new Vector3 (dx, dy, 0);
 				count += 1;
+				//Check if Baal teleported inside a wall
 			} while (Geometry.IsPointInAWall(newpos) || Geometry.IsSquareInAWall (newpos, this.GetSize()));
-			//check for collisions
-			//...
+
+			//Teleport
 			transform.position = newpos;
 
+			//Set a random next teleport time, between minTime and maxTime
 			float interval = (float)(rnd.NextDouble () * (maxTime-minTime)) + minTime; 
 			nextTeleportTime = Time.time + interval;
 
 		}
 	}
 
+	/// <summary>
+	/// Called when the Idle state starts
+	/// </summary>
 	void StartIdle(){	
+		//Idle animation
 		EnemyAnimator.Play ("BaalIdle");
 	}
 
-
+	/// <summary>
+	/// Called at every update in the idle state
+	/// </summary>
 	void ContinueIdle(){
 		
-	
+		//Check if Baal will start to chase or teleport
 		chaseIfInSight (sightDistance);
 
 		TeleportIfTime ();
@@ -109,25 +128,26 @@ public class Baal : Enemy, ICollidableActor2D {
 
 	}
 
-	void EndIdle(){		//NULL
-	}
-
-	/// IDLE : END ///	
-
-	///// CHASE ////
+	/// <summary>
+	/// Called at the end of idle state
+	/// </summary>
+	void EndIdle(){	}
 
 
-
+	/// <summary>
+	/// Called at the start of Chase state.
+	/// </summary>
 	void StartChase(){	
-		//MynavMeshAgent.speed = 1.5f;	//increase speed
-		//MynavMeshAgent.isStopped=false;	//resume Movement with icreased speed
-		//EnemyAnimator.SetFloat("Run",1.2f);
 		endChaseTime = Time.time + chaseTime;
 		FaceTarget (-Mathf.PI/2);
 	}
 
+	/// <summary>
+	/// Called at every update of the chase state.
+	/// </summary>
 	void ContinueChase(){	
 
+		//Don't keep on chasing if too much time passed or the player is in strong light
 		if (Time.time<endChaseTime && target && !isPlayerInStrongLight()) {
 
 			chaseIfInSight (sightDistance);
@@ -135,67 +155,77 @@ public class Baal : Enemy, ICollidableActor2D {
 			TeleportIfTime ();
 
 			Vector3 direction = (target.position - centerPosition).normalized;
-			centerPosition = centerPosition + direction * Time.deltaTime * chasingSpeed;
 
-			//Debug.DrawLine (centrePosition, centrePosition + new Vector3 (0.2f, 0.2f, 0), Color.green, 100f);
+			//Move the center towards the player
+			centerPosition = centerPosition + direction * Time.deltaTime * chasingSpeed;
 
 			FaceTarget (-Mathf.PI/2);
 
+			//Check if Baal is near enough to attack
 			if (Vector3.Distance (target.position, transform.position) < attackRange)
 				SetState (EnemyState.ATTACK);
-			else {
-				//MynavMeshAgent.SetDestination (target.position);
-			}
 
 		} 
 		else {
-			//Vector3 backToNode = startNode.transform.position;
-			//MynavMeshAgent.SetDestination (backToNode);
-			//EnemyAnimator.SetFloat ("Run", 0.0f);
+			//End the chase
 			SetState (EnemyState.IDLE);			
-			//FaceForward ();
 		}
 	}
 
-
+	/// <summary>
+	/// Called when the chase ends.
+	/// </summary>
 	void EndChase(){	
 		FaceRandom ();
 	}
 
-
+	/// <summary>
+	/// Called at the start of the attack state
+	/// </summary>
 	void StartAttack(){
-		//MynavMeshAgent.isStopped=true;	//stop enemy movement to do attack
-		//MynavMeshAgent.velocity = Vector3.zero;
-		//EnemyAnimator.SetBool ("Attack", true);
-		//target.GetComponent<Player> ().DamagePlayer (damagePerSecond);
+		//Play an attack (proximity) sound
 		if (AudioTeleport != null && !AudioTeleport.isPlaying) {
 			AudioTeleport.PlayOneShot (AudioTeleport.clip);
 		}
 	}
 
+	/// <summary>
+	/// Called at every update of the attack state.
+	/// </summary>
 	void ContinueAttack(){
+		//Check if we are still near enough to attack
 		if (target && Vector3.Distance (target.position, transform.position) <= attackRange) {
-			//Debug.Log (Vector3.Distance (target.position, transform.position));
+			//Damage the player and face him/her
 			target.GetComponent<Player> ().DamagePlayer (damagePerSecond * Time.deltaTime);
 			FaceTarget (-Mathf.PI/2);
 		}
 		else {
-			//EnemyAnimator.SetBool ("Attack", false);
 			SetState (EnemyState.CHASE);
 		}	
 	}
 
-
+	/// <summary>
+	/// Called at the end of the attack state
+	/// </summary>
 	void EndAttack(){
 	}
 		
+	/// <summary>
+	/// Alerts the enemy.
+	/// </summary>
+	/// <param name="type">Type.</param>
 	public override void Alert (EnemyAlert type)
 	{
 		base.Alert (type);
+
 		//If the player alerted the enemy, extend the chase range to three times normal
 		chaseIfInSight (sightDistance * 3);
 	}
 
+	/// <summary>
+	/// Graphical effect of the teleport.
+	/// </summary>
+	/// <param name="active">If set to <c>true</c> active.</param>
 	private void TeleportEffect(bool active){
 		foreach (Transform t in gameObject.transform) {
 			if (t.gameObject.name == "TeleportEffect")
@@ -227,19 +257,9 @@ public class Baal : Enemy, ICollidableActor2D {
 				SetOnFire ();
 		}
 	}
-
+		
 	public bool IsColliderActive(){
 		return enemyHp > 0.0f;
 	}
-
-		
-//	void Damage(){
-//
-//		RaycastHit[] hits=Physics.SphereCastAll (AttackPivot.position,Hades_weaponRange, AttackPivot.forward);
-//		foreach(RaycastHit hit in hits)
-//			if (hit.collider!=null && hit.collider.tag == "Player")
-//				hit.collider.GetComponent<PlayerMovement>().DamagePlayer(20);
-//	}
-
 
 }

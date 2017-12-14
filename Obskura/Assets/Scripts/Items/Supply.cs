@@ -4,6 +4,9 @@ using UnityEngine;
 
 public enum SupplyType {MedPack, Ammo};
 
+/// <summary>
+/// Supply (MedPack or Ammo) the Player can pick up.
+/// </summary>
 public class Supply : Item {
 
 	public SupplyType Type;
@@ -11,6 +14,7 @@ public class Supply : Item {
 
 	protected override void Action ( Player player)
 	{
+		//Check the type of supply and refuel the player.
 		if (Type == SupplyType.MedPack) {
 			player.HP += Amount;
 

@@ -1,4 +1,8 @@
-﻿using System.Collections;
+﻿/// <summary>
+/// Main menu scripts.
+/// Written by Awet.
+/// </summary>
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;

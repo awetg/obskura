@@ -1,5 +1,8 @@
 ﻿using System;
 
+/// <summary>
+/// Game data shared by all the scenes.
+/// </summary>
 public static class GameData
 {
 	const float difficultyFactor = 0.5f;

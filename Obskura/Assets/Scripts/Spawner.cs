@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Spawns a copy of a template object chosen at random from a list.
+/// NOT USED IN THE FINAL VERSION OF THE GAME.
+/// </summary>
 public class Spawner : MonoBehaviour {
 
 	public bool TriggerByProximity = true;
@@ -61,6 +65,7 @@ public class Spawner : MonoBehaviour {
 			}
 		}
 
+		//Check which probability basket has been selected
 		float selected, pcount = 0f;
 		int index = -1;
 
@@ -73,8 +78,10 @@ public class Spawner : MonoBehaviour {
 
 		} while (selected > pcount && index < Templates.Count - 1);
 
+		//Instantiate the selecte object...
 		var obj = GameObject.Instantiate (Templates [index]);
 
+		//...with a random angle
 		if (RandomAngle)
 			obj.transform.eulerAngles = new Vector3 (0, 0, (float) (rnd.NextDouble () * 2 * Mathf.PI * Mathf.Rad2Deg));
 
@@ -82,6 +89,7 @@ public class Spawner : MonoBehaviour {
 
 		obj.SetActive (true);
 
+		//Destroy the spawner
 		Destroy (gameObject);
 	}
 

@@ -6,6 +6,9 @@
  * NOTE: I refactored several core parts of the original algorithm using LINQ,
  * 		 and corrected some conceptual error.
  * 		 The code has been extended to handle different light cone angles and colors.
+ * 
+ * UPDATE: The class is now completely new, with almost none of the original code that 
+ * was too inefficient and limited for the purpose of this game
  */
 
 using System.Collections;
@@ -65,11 +68,7 @@ public class OLight : MonoBehaviour {
 		isEnabled = IsOn;
 		Position = transform.position;
 	}
-
-	int debugVertC = 0;
-	int debugSegC = 0;
-	int debugVertCA = 0;
-
+		
 	/// <summary>
 	/// Refreshs the light mesh (for static lights).
 	/// Call when the shadown casting objects in the map move or change.
@@ -87,16 +86,7 @@ public class OLight : MonoBehaviour {
 		List<Segment2D> segments = Geometry.GetSegments(new Vector2(pos.x, pos.y), range : maxRange); //Segments of the walls or light blocking objects
 		List<Vector3> vertices = Geometry.GetVertices(new Vector2(pos.x, pos.y), range : maxRange); //Vertices of the walls or light blocking objects
 
-		/*if (segments.Count != debugSegC) {
-			debugSegC = segments.Count;
-			Debug.Log ("Segments: " + debugSegC);
-		}
-
-		if (vertices.Count != debugVertC) {
-			debugVertC = vertices.Count;
-			Debug.Log ("Segments: " + debugVertC);
-		}*/
-
+		//Small angle to cast completing rays
 		const float delta = 0.00001f;
 
 		// Set the current position in the shader
@@ -131,7 +121,6 @@ public class OLight : MonoBehaviour {
 
 			if (conical && isInsideLightCone (-Mathf.PI, Direction, ConeAngle) && angle <= maxAngle) {
 				angle += 2 * Mathf.PI;
-				//Debug.Log ("In singularity");
 			}
 
 			//Ignore the vertices outside the light cone
@@ -145,25 +134,14 @@ public class OLight : MonoBehaviour {
 		// if conical, Cast two rays for the edge of the cone:
 		if (conical) {
 
-			//Add them in the list of rays to cast
-			//vertAngles.Add(minAngle - delta);
 			vertAngles.Add(minAngle);
-			//vertAngles.Add(minAngle + delta);
-			//vertAngles.Add (maxAngle - delta);
 
 			if (isInsideLightCone (-Mathf.PI, Direction, ConeAngle)) {
 				vertAngles.Add (maxAngle + 2 * Mathf.PI);
-				//Debug.Log ("In singularity");
 			} else {
 				vertAngles.Add (maxAngle);
 			}
-			//vertAngles.Add (maxAngle + delta);
 		}
-
-		/*if (vertAngles.Count != debugVertCA) {
-			debugVertCA = vertAngles.Count;
-			Debug.Log ("Angles: " + debugVertCA);
-		}*/
 
 		//Sort the angles in ascending order (counter-clockwise)
 		vertAngles.Sort ();
@@ -283,8 +261,6 @@ public class OLight : MonoBehaviour {
 			seg2.b = firstVert;
 			lightSegments.Add (seg1);
 			lightSegments.Add (seg2);
-			//Debug.DrawLine (seg1.a, seg1.b, Color.red, 10F);
-			//Debug.DrawLine (seg2.a, seg2.b, Color.red, 10F);
 
 		} else {
 			//Discard the center and connect the first and the last vertices
@@ -292,7 +268,6 @@ public class OLight : MonoBehaviour {
 			seg.a = lastVert;
 			seg.b = firstVert;
 			lightSegments.Add (seg);
-			//Debug.DrawLine (seg.a, seg.b, Color.red, 10F);
 		}
 
 
@@ -309,35 +284,19 @@ public class OLight : MonoBehaviour {
 		tris.Add(verts.Count-1);
 		tris.Add(0);
 
-
-		/* // Triangles of the mesh
-		for(var i=0;i<verts.Count+1;i++)
-		{
-			tris.Add((i+1) % verts.Count);
-			tris.Add((i) % verts.Count);
-			tris.Add(0);
-		}*/
-
 		// Build mesh
 		lightMesh.Clear();
 		lightMesh.vertices = verts.ToArray();
 		lightMesh.triangles = tris.ToArray();
-		//lightMesh.RecalculateNormals(); // FIXME: no need if no lights..or just assign fixed value..
 
 		meshFilter.mesh = lightMesh;
 		computed = true;
 
-		//DEBUG
-		/*Vector2 mpos = Camera.main.ScreenToWorldPoint (new Vector2 (Input.mousePosition.x, Input.mousePosition.y));
-
-		if (PointIsInLight (mpos) != debugFlag) {
-			debugFlag = !debugFlag;
-			Debug.Log(debugFlag);
-		}*/
 	}
 
 	void Update () 
 	{
+		//Is the light enabled and in the "on" state? If not don't refresh it.
 		if (!IsOn) {
 			if (isEnabled) {
 				GetComponent<Renderer> ().enabled = false;
@@ -345,36 +304,28 @@ public class OLight : MonoBehaviour {
 			}
 			return;
 		}
-
+		//The light has been switch on, re-enable it
 		if (IsOn && !isEnabled) {
 			GetComponent<Renderer> ().enabled = true;
 			isEnabled = true;
 		}
 
+		//Inflict damages to enemies in the light
 		InflictDamages ();
 
+		//Check if the player is in the light
 		SearchForPlayer ();
 
+		//If the light is static (not moving) there is no need to refresh it
 		if (Static) {
 			Mouse = false;
 			if (computed)
 				return;
 		}
 			
-
+		//Refresh the light (recompute the light mesh)
 		RefreshLight ();
 
-	}
-
-	void FixedUpdate(){
-		if (!IsOn)
-			return;
-		
-		//Vector3 pos = Camera.main.ScreenToWorldPoint (new Vector3 (Input.mousePosition.x, Input.mousePosition.y, 10));
-		//PointIsInLight (pos);
-
-		
-		//InflictDamages ();
 	}
 
 	/// <summary>
@@ -419,34 +370,32 @@ public class OLight : MonoBehaviour {
 		// Find the number of intersections until the point (param < 1.0F)
 		var intersectCount = allIntersct.Where (x => x.v != null && x.param <= 1.0F).Count();
 
-		/*
-		allIntersct.ToList().Where (x => x.v != null && x.param < 1.0F).ToList().ForEach(i =>
-			//Debug.DrawRay(i.v.Value, new Vector3(0.1F,0.1F,0.1F), (intersectCount % 2 == 0) ? Color.green : Color.red, 10000.0F, false)
-			Debug.DrawLine (new Vector3(ray.a.x, ray.a.y, -20), new Vector3(ray.b.x, ray.b.y, -20), (intersectCount % 2 != 0) ? Color.green : Color.red, duration : 10000.0F ,depthTest : false)
-		);
-		Debug.Log (intersectCount);*/
-
-
+		//If there is an odd number of intersection we are inside the polygon, if it's even we are outside
 		if (intersectCount % 2 != 0)
 			return true;
 		else
 			return false;
 	}
 
-
+	/// <summary>
+	/// Inflicts the damages to the enemies.
+	/// </summary>
 	void InflictDamages(){
 
-		if (DamagePerSecond <= 0f)
+		if (DamagePerSecond <= 0f) //No damage
 			return;
 
+		//Get all the cached object within a reasonable distance from the light
 		var objs = Tags.CachedGameObjectsWithTagInRange (damageTag, transform.position, DimmingDistance * maximumDistanceFactor);
 
+		//For every enemy in range...
 		foreach (GameObject obj in objs) {
 			Enemy enemy = obj.GetComponent<Enemy>();
 
 			if (enemy != null) {
 				Vector2 enemyPos = new Vector2 (enemy.transform.position.x, enemy.transform.position.y);
 
+				//...check if it is in the light...
 				if (!PointIsInLight (enemyPos))
 					continue;
 		
@@ -455,17 +404,22 @@ public class OLight : MonoBehaviour {
 				float dist = diff.magnitude;
 				float decay = 1F;
 
+				//Check its distance
 				if (dist > DimmingDistance) {
 					decay = 1F / dist;
 				}
 
+				//Damage it.
 				float damage = DamagePerSecond * Time.deltaTime * decay;
 
 				enemy.GetDamagedByLight (damage);
 			}
 		}
 	}
-
+	/// <summary>
+	///  Find out if the player is in the light 
+	/// (useful only is strong light, because enemies must not attack a player in strong light).
+	/// </summary>
 	void SearchForPlayer(){
 
 		if (!IsStrong)
@@ -473,12 +427,14 @@ public class OLight : MonoBehaviour {
 
 		var objs = Tags.CachedGameObjectsWithTagInRange ("Player", transform.position, DimmingDistance * maximumDistanceFactor);
 
+		//For each player...
 		foreach (GameObject obj in objs) {
 			Player player = obj.GetComponent<Player>();
 
 			if (player != null && player.transform != null) {
 				Vector2 playerPos = new Vector2 (player.transform.position.x, player.transform.position.y);
 
+				//... check if they are in the light ...
 				if (!PointIsInLight (playerPos))
 					return;
 
@@ -486,6 +442,7 @@ public class OLight : MonoBehaviour {
 				Vector2 diff = playerPos - lightPos;
 				float dist = diff.magnitude;
 
+				//if they are near enough, tell them they are in strong light
 				if (dist < DimmingDistance)
 					player.SetInStrongLight ();
 			}
@@ -502,6 +459,12 @@ public class OLight : MonoBehaviour {
 		return a - Mathf.Floor (a / n) * n;
 	}
 
+	/// <summary>
+	/// Find if an angle is between two other ordered angles.
+	/// </summary>
+	/// <param name="angle">Angle.</param>
+	/// <param name="coneDirection">Cone direction.</param>
+	/// <param name="coneAngle">Cone angle.</param>
 	bool isInsideLightCone(float angle, float coneDirection, float coneAngle) {
 		float diff = angle - coneDirection;
 

@@ -5,6 +5,9 @@ public enum CollisionType {
 	PLASMA
 }
 
+/// <summary>
+/// If an actor (enemy, door, player) implements this interface, they can be collided by bullets
+/// </summary>
 public interface ICollidableActor2D
 {
 	bool IsColliderActive();

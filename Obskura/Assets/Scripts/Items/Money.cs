@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Score that the Player can pick up;
+/// </summary>
 public class Money : Item {
 
 	public float Amount = 10.0f;

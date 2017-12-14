@@ -1,104 +1,114 @@
-﻿//FIXME: Refactor Olight and OLaser to share more code (after the demo)
-
+﻿//Written by Manuel
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+/// <summary>
+/// Bullet fired by plasma gun.
+/// </summary>
 public class OBullet : MonoBehaviour {
 
+	//Who to damage (apart from the player)
 	const string damageTag = "Enemy";
 
+	//Parameters of the buller
 	public float PrimaryDamage = 80f;
-	public float SecondaryDamage = 30f;
+	public float SecondaryDamage = 30f; //Lower damage in a bigger radius
 	public float Speed = 1.0f;
 	public float DimmingTime = 0.3f;
 	public float MaxDistance = 100.0f;
 	public float FireProbability = 0.2f;
 	public float ImpactForce = 1f;
-	public float SecondaryDamageRadius = 8f;
+	public float SecondaryDamageRadius = 8f; //Lower damage in a bigger radius
 
-	public AudioSource ImpactSound;
+	public AudioSource ImpactSound; //Sound on impact
 
+	//Vectors to compute the motion of the bullet
 	private Vector2 origin;
 	private Vector2 destination;
 	private Vector2 diff;
+
+	//Progress of the bullet in its motion (from 0 to 1)
 	private float progress;
-	private float dimming = 3.0f;
+	private float dimming = 3.0f; //Dimming factor after explosion
 	private bool isEnabled = false;
 	private bool arrived = false;
-	private float baseIntensity = 0f;
-	private float baseRange = 0f;
+	private float baseIntensity = 0f; //Light intensity of the plasma bullet
+	private float baseRange = 0f; //Light distance of the plasma buller
 	private System.Random rnd = new System.Random();
-	private List<ICollidableActor2D> collidables; //Objects that can be hit by a bullet
+	private List<ICollidableActor2D> collidables; //Cache of objects that can be hit by a bullet
 
 
 	public OLight LaserLight;
 
-
+	/// <summary>
+	/// Fire the buller from "from" to "target".
+	/// </summary>
+	/// <param name="from">From.</param>
+	/// <param name="target">Target.</param>
 	public void Fire(Vector2 from, Vector2 target){
 
 		if (isEnabled) //Already fired this bullet
 			return;
 
+		//Find the enemies thhat are collidable (ICollidableActor.cs)
 		var enemies = GameObject.FindGameObjectsWithTag ("Enemy").Select(enemy => enemy.GetComponent<Enemy>());
 		collidables = enemies.Where (enemy => enemy is ICollidableActor2D).Cast<ICollidableActor2D>().ToList();
 
+		//Position of the starting pointt
 		Vector2 pos = new Vector2 (from.x, from.y);
-		//LaserLight = GameObject.Instantiate (LaserLight);
+
+		//Turn on the plasma light
 		LaserLight.IsOn = true;
 
-
-		// Set the current position in the shader
-		/*Material mat = LaserLight.GetComponent<Renderer>().material;
-		mat.SetVector ("_Origin", new Vector4(pos.x, pos.y, 0, 0));
-		mat.SetVector ("_Destination", new Vector4(target.x, target.y, 0, 0));
-		mat.SetFloat ("_Dist", 2f);
-		mat.SetFloat ("_Intensity", 10f);
-		mat.SetColor ("_Color", Color.red);*/
-
-		//Debug.DrawLine (transform.position, transform.position + new Vector3 (direction.x, direction.y, 0), Color.red, 100f);
+		//set the origin
 		origin = pos;
 
-		Debug.Log (pos.x + " " + pos.y);
-
+		//Find the first interception with a wall...
 		Intersection firstWall = Geometry.GetFirstIntersection (pos, target, MaxDistance);
 
+		//...if it exists...
 		if (firstWall.v == null)
 			return;
 
+		//...set it as destination for the bullet
 		destination = firstWall.v.Value;
-		
+
+		//Displacement vector of origin -> destination
 		diff = new Vector2(firstWall.v.Value.x, firstWall.v.Value.y) - pos;
 
-		Debug.Log (firstWall.v.Value.x + " " + firstWall.v.Value.y);
-
-
+		//Initialize the travel
 		isEnabled = true;
 		progress = 0.0f;
 
 	}
 
+	/// <summary>
+	/// Checks if it collided an enemy.
+	/// </summary>
 	void CheckEnemyCollision(){
 		var collided = false;
 		Vector2 pos = Vector2.zero;
 
-		//First check for collision
+		//Check for collision to get the explosion position
 		foreach(ICollidableActor2D c in collidables){
 			if (c != null && !c.IsColliderActive ())
 				continue;
 			
 			var dstv = new Vector2(transform.position.x, transform.position.y) - c.GetPosition();
 			var dist = dstv.magnitude;
+
+			//If the distance of the bullet is less of the size of the object
 			if (c.IsColliderActive() && dist < c.GetSize()){
 				pos = c.GetPosition ();
-				collided = true;
+				collided = true; //There has been a collision
 				break;
 			}
 		}
 			
 		if (collided) {
-			
+			//Check now for all tthe enemies/players in damage distance
 			foreach(ICollidableActor2D c in collidables){
 
 				if (!c.IsColliderActive ())
@@ -106,10 +116,12 @@ public class OBullet : MonoBehaviour {
 
 				var dstv = new Vector2(transform.position.x, transform.position.y) - c.GetPosition();
 				var dist = dstv.magnitude;
+
+				//Primary collision
 				if (dist < c.GetSize ()) {
 					var setOnFire = rnd.NextDouble () < FireProbability;
 					c.CollidedBy (CollisionType.PLASMA, PrimaryDamage, ImpactForce * dstv.normalized / dist, setOnFire);
-				} else if (dist < SecondaryDamageRadius) {
+				} else if (dist < SecondaryDamageRadius) { //Secondary(distance) damage
 					var setOnFire = rnd.NextDouble () < FireProbability / 2;
 					c.CollidedBy (CollisionType.PLASMA, SecondaryDamage, ImpactForce * dstv.normalized / dist, setOnFire);
 				}
@@ -121,6 +133,10 @@ public class OBullet : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Collided at the specified point, set the explosion in there.
+	/// </summary>
+	/// <param name="point">Point.</param>
 	void Collided(Vector2 point) {
 		//Damage player if too near (but with lower damage, and only in two thirds of the range)
 		var player = GameObject.FindGameObjectWithTag("Player");
@@ -131,6 +147,7 @@ public class OBullet : MonoBehaviour {
 				player.GetComponent<Player> ().DamagePlayer (SecondaryDamage);
 		}
 
+		//Prepare the explosion intensity animation
 		arrived = true;
 		dimming = 3.0f;
 		baseIntensity = LaserLight.Intensity;
@@ -141,6 +158,7 @@ public class OBullet : MonoBehaviour {
 		LaserLight.transform.position = transform.position;
 		LaserLight.Position = transform.position;
 
+		//Play impact sound
 		if (ImpactSound != null)
 			ImpactSound.PlayOneShot (ImpactSound.clip);
 	}
@@ -150,17 +168,18 @@ public class OBullet : MonoBehaviour {
 		if (!isEnabled)
 			return;
 
+		//The explosion faded away, destroy the bullet
 		if (dimming <= 0.01f) {
 			Destroy (gameObject);
 		}
 
-		if (!arrived) {
-			CheckEnemyCollision ();
+		if (!arrived) { //If is not arrived at the nearest wall
+			CheckEnemyCollision (); //Check for enemy collision in between
 
-			if (progress >= 0.99f) {
+			if (progress >= 0.99f) { //Finally collided the wall
 				Collided (destination - 0.5f * diff.normalized);
 			} else {
-
+				//No collision, move the bullet forward
 				progress += Speed * Time.deltaTime / diff.magnitude;
 
 				transform.position = origin + diff * progress;
@@ -168,6 +187,7 @@ public class OBullet : MonoBehaviour {
 				LaserLight.Position = transform.position;
 			}
 		} else {
+			//Already exploded... fade away in time
 			LaserLight.Intensity = baseIntensity * dimming;
 			LaserLight.DimmingDistance = baseRange * dimming / 1.5F;
 			dimming -= (Time.deltaTime / (DimmingTime / 3));

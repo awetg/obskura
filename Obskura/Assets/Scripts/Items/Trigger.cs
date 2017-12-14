@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Execute an action if tthe payer comes near or uses the use key.
+/// NOT USED IN THE FINAL VERSION OF THE GAME CODE.
+/// </summary>
 public class Trigger : Item {
 
 	public delegate void ExecActionDelegate();

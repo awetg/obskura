@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿//Written by Manuel
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -8,10 +9,16 @@ public static class Tags {
 
 	static Dictionary<string,  List<GameObject>> cache = new Dictionary<string, List<GameObject>>();
 
+	/// <summary>
+	/// Clears the cache.
+	/// </summary>
 	public static void ClearCache(){
 		cache.Clear ();
 	}
 
+	/// <summary>
+	/// Cache all objects of a tag
+	/// </summary>
 	public static void CacheTag(string tag){
 		if (cache.ContainsKey (tag)) {
 			cache [tag] = GameObjectsWithTag (tag);
@@ -20,8 +27,11 @@ public static class Tags {
 		}
 	}
 
+	/// <summary>
+	/// Add to the cache
+	/// </summary>
 	public static void CacheAdd(GameObject obj){
-		var pattern = "(([A-Z])([a-z]*))";
+		var pattern = "(([A-Z])([a-z]*))"; //Split the tags by with pascal case (ie. "PlayerEnemy" -> "Player" + "Enemy")
 		var matches = Regex.Matches (obj.tag, pattern);
 
 		foreach (Match m in matches) {
@@ -34,8 +44,11 @@ public static class Tags {
 		}
 	}
 
+	/// <summary>
+	/// Remove from the cache
+	/// </summary>
 	public static void CacheRemove(GameObject obj){
-		var pattern = "(([A-Z])([a-z]*))";
+		var pattern = "(([A-Z])([a-z]*))"; //Split the tags by pascal case
 		var matches = Regex.Matches (obj.tag, pattern);
 
 		foreach (Match m in matches) {
@@ -47,6 +60,9 @@ public static class Tags {
 		}
 	}
 
+	/// <summary>
+	/// Get the gameobjects in the cache with a specific tag
+	/// </summary>
 	public static List<GameObject> CachedGameObjectsWithTag(string tag){
 		if (cache.ContainsKey(tag)){
 			var objs = cache[tag];
@@ -55,6 +71,9 @@ public static class Tags {
 		return new List<GameObject> { };
 	}
 
+	/// <summary>
+	/// Get the gameobjects in the cache with a specific tag within a certain range
+	/// </summary>
 	public static List<GameObject> CachedGameObjectsWithTagInRange(string tag, Vector2 center, float range){
 		List<GameObject> res = new List<GameObject> ();
 		if (cache.ContainsKey(tag)){

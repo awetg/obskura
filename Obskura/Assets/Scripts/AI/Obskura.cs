@@ -2,21 +2,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Obskura enemy.
+/// </summary>
 public class Obskura : Enemy, ICollidableActor2D {
 
-
+	//Parameters affecting the dimming caused by obskura
 	public float AlertTime = 10f;
 	public float MaxDimmingAfter = 5f;
 	public float DimmingFactor = 0.1f;
 
-	public AudioSource AudioDark;
+	public AudioSource AudioDark; //Audio to play when obskura acts
 
-	OLightManager lightManager;
+	OLightManager lightManager; //Light manager to reduce the light
 
+	//When the dimming stops and reaches the maximum
 	float stopAlertAt = 0f;
 	float maxDimmingAt = 0f;
 
-
+	//Which proportion of the reference intensity the darkness will reach
 	float darknessProportion = 1.0f;
 	float referenceIntensity = 10f;
 
@@ -24,6 +28,7 @@ public class Obskura : Enemy, ICollidableActor2D {
 	protected override void Start () {
 		SetState(startState);	//set state to idle from none
 
+		//Retrive the camera to get the reference intensity
 		var camera = GameObject.FindGameObjectWithTag ("MainCamera");
 
 		if (camera != null) {
@@ -41,11 +46,14 @@ public class Obskura : Enemy, ICollidableActor2D {
 		if (damagePerSecond == 0)
 			damagePerSecond = 50f;
 
+		//Which effectt to show when in lightt
 		showEffectInLight = "ObskuraEffect";
 
+		//Destroy 0.1 seconds after death
 		destroyAfter = 0.1f;
 
-		//STATES:
+		//STATES TABLE:
+		//To every state associate a behaviour, composed of an init, an update and an end delegate
 		states.Add (EnemyState.IDLE, new EnemyBehaviour (StartIdle, None, None));
 		states.Add (EnemyState.CHASE, new EnemyBehaviour (None, None, None));
 		states.Add (EnemyState.ATTACK, new EnemyBehaviour (StartAttack, ContinueAttack, EndAttack));
@@ -53,47 +61,50 @@ public class Obskura : Enemy, ICollidableActor2D {
 
 		base.Start ();
 	}
-
-	//Teleport code written by Elsa
-	//If the time delay for the next teleport has elapsed, try to teleport
-
-
-	void StartIdle(){	
+		
+	void StartIdle(){
+		//Idle animation	
 		EnemyAnimator.Play ("ObskuraAnim");
 	}
 
 	void StartAttack(){
+		//Initialize the attack
 		maxDimmingAt = Time.time + MaxDimmingAfter;
 		darknessProportion = 1.0f;
-		//referenceIntensity = lightManager.Intensity;
 		if (AudioDark != null && !AudioDark.isPlaying) {
 			AudioDark.PlayOneShot (AudioDark.clip);
 		}
 	}
 
 	void ContinueAttack(){
+		//Alert time elapsed, back to idle
 		if (Time.time > stopAlertAt) {
 			SetState (EnemyState.IDLE);
 			return;
 		}
 
+		//Calculate a time progressive dimming factor
 		if (Time.time < maxDimmingAt) {
 			darknessProportion = DimmingFactor + (1.0f - DimmingFactor) * (maxDimmingAt - Time.time) / MaxDimmingAfter;
 		} else
 			darknessProportion = DimmingFactor;
 
+		//Reduces the intensity of the lights in the map
 		lightManager.Intensity = referenceIntensity * darknessProportion;
 	}
 
+	//Restore the lights to reference intensity
 	void EndAttack(){
 		lightManager.Intensity = referenceIntensity;
 		Debug.Log (referenceIntensity);
 	}
 
+	//Alert the obskura
 	public override void Alert (EnemyAlert type)
 	{
 		base.Alert (type);
 		stopAlertAt = Time.time + AlertTime;
+		//If alerted dim the lights.
 		if (GetCurrentState() != EnemyState.ATTACK)
 			SetState (EnemyState.ATTACK);
 	}
