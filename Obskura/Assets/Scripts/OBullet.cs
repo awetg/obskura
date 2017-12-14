@@ -18,6 +18,8 @@ public class OBullet : MonoBehaviour {
 	public float ImpactForce = 1f;
 	public float SecondaryDamageRadius = 8f;
 
+	public AudioSource ImpactSound;
+
 	private Vector2 origin;
 	private Vector2 destination;
 	private Vector2 diff;
@@ -138,6 +140,9 @@ public class OBullet : MonoBehaviour {
 		transform.position = point - 0.5f * diff.normalized;
 		LaserLight.transform.position = transform.position;
 		LaserLight.Position = transform.position;
+
+		if (ImpactSound != null)
+			ImpactSound.PlayOneShot (ImpactSound.clip);
 	}
 
 	void Update () 

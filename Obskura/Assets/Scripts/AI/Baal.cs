@@ -19,6 +19,9 @@ public class Baal : Enemy, ICollidableActor2D {
 	public float sightDistance = 50F;
 	public float attackRange = 3f;
 
+	public AudioSource AudioTeleport;
+
+
 	private Vector3 originalPosition;
 
 	float nextTeleportTime=0;
@@ -165,6 +168,9 @@ public class Baal : Enemy, ICollidableActor2D {
 		//MynavMeshAgent.velocity = Vector3.zero;
 		//EnemyAnimator.SetBool ("Attack", true);
 		//target.GetComponent<Player> ().DamagePlayer (damagePerSecond);
+		if (AudioTeleport != null && !AudioTeleport.isPlaying) {
+			AudioTeleport.PlayOneShot (AudioTeleport.clip);
+		}
 	}
 
 	void ContinueAttack(){

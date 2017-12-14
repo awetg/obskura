@@ -152,8 +152,10 @@ GameObject:
   - component: {fileID: 195362330976100132}
   - component: {fileID: 54671931987929542}
   - component: {fileID: 114823300989727928}
+  - component: {fileID: 82523465547811432}
+  - component: {fileID: 114819504663719262}
   m_Layer: 0
-  m_Name: Hades
+  m_Name: Hades1
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -302,7 +304,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1784316981420942}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 13.59, y: 8.89, z: 0}
+  m_LocalPosition: {x: -9.54454, y: -6.783371, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4694497611940958}
@@ -478,6 +480,86 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!82 &82523465547811432
+AudioSource:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1526892994029334}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 0.8
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1.2446632
+  MaxDistance: 21.00985
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 2
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    - serializedVersion: 2
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 2
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 0
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 2
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 0
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 2
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 0
 --- !u!95 &95333459864763038
 Animator:
   serializedVersion: 3
@@ -567,6 +649,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   nextNode: {fileID: 114418570825087006}
+--- !u!114 &114819504663719262
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1526892994029334}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1002160353, guid: f7b54ff4a43d4fcf81b4538b678e0bcc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_RoomSize: 0
 --- !u!114 &114823300989727928
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -581,6 +675,7 @@ MonoBehaviour:
   enemyHp: 100
   damagePerSecond: 0
   EnemyAnimator: {fileID: 95333459864763038}
+  Sounds: {fileID: 0}
   startState: 0
   chaseTime: 10
   chaseRange: 15
@@ -590,6 +685,8 @@ MonoBehaviour:
   chaseSpeed: 10
   MynavMeshAgent: {fileID: 195362330976100132}
   startNode: {fileID: 114552852647445820}
+  AudioWalk: {fileID: 8300000, guid: ec185328c5e094657aed647f6677d3d2, type: 3}
+  AudioChase: {fileID: 8300000, guid: 1ef5239d42fbf47fc93591c06e85e18e, type: 3}
 --- !u!114 &114905441352946398
 MonoBehaviour:
   m_ObjectHideFlags: 1

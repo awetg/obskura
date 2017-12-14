@@ -14,6 +14,9 @@ public class Hades : Enemy, ICollidableActor2D
 	public NavMeshAgent MynavMeshAgent;
 	public EnemyPath startNode;		//start node to move until enemy detection, set in INSPECTOR
 
+	public AudioClip AudioWalk;
+	public AudioClip AudioChase;
+
 	private float endChaseTime = 0;
 	private float endAttackTime = 0;
 
@@ -84,6 +87,9 @@ public class Hades : Enemy, ICollidableActor2D
 			MynavMeshAgent.SetDestination (startNode.GetPosition ());
 		}
 
+		if (Sounds != null && AudioWalk != null && !Sounds.isPlaying)
+			Sounds.PlayOneShot (AudioWalk);
+
 		FaceForward ();
 	}
 
@@ -99,6 +105,10 @@ public class Hades : Enemy, ICollidableActor2D
 		EnemyAnimator.SetFloat("Run",0.0f);
 		EnemyAnimator.SetBool ("Attack", false);
 		endChaseTime = Time.time + chaseTime;
+
+		if (Sounds != null && AudioWalk != null && AudioChase != null) {
+			Sounds.clip = AudioWalk;
+		}
 	}
 
 	void ContinueChase(){	
@@ -137,6 +147,10 @@ public class Hades : Enemy, ICollidableActor2D
 			EnemyAnimator.SetFloat ("Run", 0.0f);
 			SetState (EnemyState.IDLE);	
 		}
+
+		if (Sounds != null && AudioWalk != null && !Sounds.isPlaying) {
+			Sounds.PlayOneShot (AudioWalk);
+		}
 			
 	}
 
@@ -168,6 +182,9 @@ public class Hades : Enemy, ICollidableActor2D
 	}
 
 	void DeadState(){
+		if (Sounds != null && AudioChase != null) {
+			Sounds.PlayOneShot (AudioChase);
+		}
 		FaceForward ();
 //		MynavMeshAgent.isStopped = true;	//stop enemy movement to do attack
 		MynavMeshAgent.enabled = false;

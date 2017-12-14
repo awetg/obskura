@@ -7,11 +7,12 @@ using UnityEngine;
 
 public class OGun : MonoBehaviour {
 
-	const string damageTag = "Enemy";
+
 
 	private const float shootingTime = 0.5f;
 	private float stopShootingAt = 0;
-	public float LaserPower = 200f;
+
+	public AudioSource FiringSound;
 
 	public OBullet PlasmaBullet;
 
@@ -34,6 +35,9 @@ public class OGun : MonoBehaviour {
 
 		GameObject bullet = GameObject.Instantiate (PlasmaBullet.gameObject);
 		bullet.GetComponent<OBullet> ().Fire (from, target);
+
+		if (FiringSound != null)
+			FiringSound.PlayOneShot (FiringSound.clip);
 
 		//Debug.DrawLine (transform.position, transform.position + new Vector3 (diff.x, diff.y, 0), Color.red, 100f);
 

@@ -14,6 +14,7 @@ public class Player : MonoBehaviour {
 	public float HP = 100;	//player hp, updated from enemies and sent to gamecontroller to screen
 	public float MaxHP = 200;
 	public float speed;
+	public AudioSource CollectSound;
 	private Quaternion rotate;
 	private Rigidbody2D MyRigidbody;
 	private Animator PlayerAnimator;
@@ -122,8 +123,10 @@ public class Player : MonoBehaviour {
 			torches [leftHand].light.Position = new Vector2 (transform.position.x, transform.position.y + 0.3f);
 			torches [leftHand].light.Direction = (transform.eulerAngles.z + 90) * Mathf.Deg2Rad;
 
-			if (Input.GetKeyDown (KeyCode.T))
+			if (Input.GetKeyDown (KeyCode.T)) {
 				torches [leftHand].light.IsOn = !torches [leftHand].light.IsOn;
+				MakeCollectSound ();
+			}
 
 			//Ctrl to focus the light
 			if (!focused && Input.GetKeyDown (KeyCode.LeftControl)) {
@@ -217,8 +220,6 @@ public class Player : MonoBehaviour {
 
 	public void DamagePlayer(float damage){
 
-		return;
-
 		HP = HP - damage;
 		//NOTE: The controller should command to write the player's hp to screen
 		//GameController.ShowDamage (hp);	//send hp to screen, only player hp get displayed
@@ -296,6 +297,12 @@ public class Player : MonoBehaviour {
 		var controller = gc.GetComponent<GameController> ();
 
 		controller.ConcludeGame ();
+	}
+
+	public void MakeCollectSound(){
+		if (CollectSound != null) {
+			CollectSound.PlayOneShot (CollectSound.clip);
+		}
 	}
 
 	private struct Tool

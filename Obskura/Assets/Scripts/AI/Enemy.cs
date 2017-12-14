@@ -29,6 +29,7 @@ public abstract class Enemy : MonoBehaviour {
 	public float enemyHp = 0;
 	public float damagePerSecond = 0;
 	public Animator EnemyAnimator;	//for enemy animation
+	public AudioSource Sounds;
 	private EnemyState currentState = EnemyState.NONE;	//needed variable for control of states
 	public EnemyState startState = EnemyState.IDLE;	//can be made public to choose from INSPECTOR
 	protected Transform target;
@@ -68,6 +69,11 @@ public abstract class Enemy : MonoBehaviour {
 
 	// Use this for initialization
 	protected virtual void Start () {
+		var sounds = gameObject.GetComponent<AudioSource> ();
+
+		if (sounds != null)
+			Sounds = sounds;
+
 		states.Add (EnemyState.NONE, new EnemyBehaviour (None, None, None));
 		SetState(startState);	//set state to idle from none
 		target = GameObject.FindGameObjectWithTag("Player").transform;

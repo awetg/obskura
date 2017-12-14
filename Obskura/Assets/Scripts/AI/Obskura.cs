@@ -9,6 +9,8 @@ public class Obskura : Enemy, ICollidableActor2D {
 	public float MaxDimmingAfter = 5f;
 	public float DimmingFactor = 0.1f;
 
+	public AudioSource AudioDark;
+
 	OLightManager lightManager;
 
 	float stopAlertAt = 0f;
@@ -64,6 +66,9 @@ public class Obskura : Enemy, ICollidableActor2D {
 		maxDimmingAt = Time.time + MaxDimmingAfter;
 		darknessProportion = 1.0f;
 		//referenceIntensity = lightManager.Intensity;
+		if (AudioDark != null && !AudioDark.isPlaying) {
+			AudioDark.PlayOneShot (AudioDark.clip);
+		}
 	}
 
 	void ContinueAttack(){

@@ -20,5 +20,7 @@ public class Supply : Item {
 		} else if (Type == SupplyType.Ammo) {
 			player.Ammo += (int)Amount;
 		}
+
+		player.MakeCollectSound ();
 	}
 }
