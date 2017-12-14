@@ -180,7 +180,10 @@ public class GameController : MonoBehaviour {
 	/// The "exit" button has been pressed and confirmed.
 	/// </summary>
 	public void EndGame(){	//if yes button for exit is click go to main menu
-		SceneManager.LoadScene("MainMenu");
+		//SceneManager.LoadScene("MainMenu");
+		//Going to main menu is buggy, causing the player to be unable to move in a new game
+		//So I close the application on exit.
+		Application.Quit();
 	}
 		
 	/// <summary>
